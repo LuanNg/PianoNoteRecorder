@@ -1,4 +1,4 @@
-# nezval_piano
+# Nezval Piano
 Nezval Piano C# assignment
 
 Commands:
