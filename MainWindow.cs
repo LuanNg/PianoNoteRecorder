@@ -44,8 +44,8 @@ namespace NezvalPiano {
             //Horizontal Lines
 
             /*Invisible Top lines */
-            e.Graphics.DrawLine(Pens.Black, 20, 30, 400, 30);
-            e.Graphics.DrawLine(Pens.Black, 20, 60, 400, 60);
+           // e.Graphics.DrawLine(Pens.Black, 20, 30, 400, 30);
+           // e.Graphics.DrawLine(Pens.Black, 20, 60, 400, 60);
            
             e.Graphics.DrawLine(Pens.Black, 20, 90, 400, 90);
             e.Graphics.DrawLine(Pens.Black, 20, 120, 400, 120);
@@ -54,7 +54,7 @@ namespace NezvalPiano {
             e.Graphics.DrawLine(Pens.Black, 20, 210, 400, 210);
 
             /*Invisible Bottom Line */
-            e.Graphics.DrawLine(Pens.Black, 20, 240, 400, 240);
+           // e.Graphics.DrawLine(Pens.Black, 20, 240, 400, 240);
 
             //Vertical Line
             e.Graphics.DrawLine(Pens.Black, 40, 90, 40, 210);
