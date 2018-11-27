@@ -23,6 +23,7 @@ namespace NezvalPiano {
         private PictureBox pictureBox15;
         private PictureBox pictureBox16;
         private PictureBox pictureBox1;
+		private Bitmap quaver = Properties.Resources.Quaver;
 
         public MainWindow() {
 			InitializeComponent();
@@ -52,6 +53,7 @@ namespace NezvalPiano {
             e.Graphics.DrawLine(Pens.Black, 20, 150, 400, 150);
             e.Graphics.DrawLine(Pens.Black, 20, 180, 400, 180);
             e.Graphics.DrawLine(Pens.Black, 20, 210, 400, 210);
+			e.Graphics.DrawImage(quaver, 10, 10);
 
             /*Invisible Bottom Line */
            // e.Graphics.DrawLine(Pens.Black, 20, 240, 400, 240);
