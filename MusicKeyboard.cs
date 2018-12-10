@@ -14,5 +14,9 @@ namespace NezvalPiano {
 	[Description("An interactive piano keyboard for note generation within a musical staff")]
 	[DisplayName(nameof(MusicKeyboard))]
 	public class MusicKeyboard : Panel {
+		public MusicKeyboard() {
+			BackgroundImage = Properties.Resources.keyboard_piano;
+			BackgroundImageLayout = ImageLayout.Zoom;
+		}
 	}
 }

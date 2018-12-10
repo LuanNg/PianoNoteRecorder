@@ -16,7 +16,15 @@ namespace NezvalPiano {
 	public class MusicStaff : Panel {
 		public MusicStaff() {
 			VScroll = true;
-			
+			HScroll = false;
+		}
+
+		/// <summary>
+		/// Called when the panel size changed
+		/// </summary>
+		protected override void OnClientSizeChanged(EventArgs e) {
+			base.OnClientSizeChanged(e);
+			AutoScrollMinSize = new Size(ClientSize.Width - SystemInformation.VerticalScrollBarWidth, AutoScrollMinSize.Height);
 		}
 
 		protected override void OnPaint(PaintEventArgs e) {
