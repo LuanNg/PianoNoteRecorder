@@ -3,6 +3,7 @@
 	/// An integer enumeration that represents notes on a scale
 	/// </summary>
 	public enum NoteEnum {
+		None = 0,
 		C4,
 		CSharp4,
 		D4,

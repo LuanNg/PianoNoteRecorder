@@ -17,7 +17,7 @@ namespace NezvalPiano {
 		/// <summary>
 		/// The length in milliseconds for a half-hemidemisemiquaver
 		/// </summary>
-		public const float MillisPerHalfHemiDemiSemiQuaver = 18;
+		private static float millisPerHalfHemiDemiSemiQuaver = 467 / 32;
 		/// <summary>
 		/// An integer enumeration that represents notes on a scale
 		/// </summary>
@@ -31,11 +31,23 @@ namespace NezvalPiano {
 		private bool leftButtonDown, rightButtonDown, mouseMovedDuringLeftButton;
 
 		/// <summary>
-		/// Gets the curent note length in milliseconds
+		/// Gets or sets the global length in milliseconds for a crotchet (single beat)
+		/// </summary>
+		public static float MillisPerBeat {
+			get {
+				return millisPerHalfHemiDemiSemiQuaver * 32;
+			}
+			set {
+				millisPerHalfHemiDemiSemiQuaver = value * 0.03125f;
+			}
+		}
+
+		/// <summary>
+		/// Gets the current note length in milliseconds
 		/// </summary>
 		public float LengthInMilliseconds {
 			get {
-				return (int) Length * MillisPerHalfHemiDemiSemiQuaver;
+				return (int) Length * millisPerHalfHemiDemiSemiQuaver;
 			}
 		}
 
