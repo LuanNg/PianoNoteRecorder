@@ -31,8 +31,14 @@ namespace NezvalPiano {
 			LineAlignment = StringAlignment.Center
 		};
 		private int widthScale = 100;
+		private Point LastCursorLocation;
 		private bool showHint, leftMouseDown;
 
+		/// <summary>
+		/// Gets or sets whether to show the resize hint text
+		/// </summary>
+		[Browsable(true)]
+		[Description("Gets or sets whether to show the resize hint text")]
 		public bool ShowHint {
 			get {
 				return showHint;
@@ -48,6 +54,8 @@ namespace NezvalPiano {
 		/// <summary>
 		/// Gets or sets the current piano width percentage
 		/// </summary>
+		[Browsable(true)]
+		[Description("Gets or sets the piano width scale percentage")]
 		public int WidthScalePercentage {
 			get {
 				return widthScale;
@@ -108,6 +116,7 @@ namespace NezvalPiano {
 		protected override void OnMouseDown(MouseEventArgs e) {
 			base.OnMouseDown(e);
 			if (e.Button == MouseButtons.Left) {
+				LastCursorLocation = e.Location;
 				leftMouseDown = true;
 				Rectangle bounds = PianoBounds;
 				if (bounds.Contains(e.Location))
@@ -118,6 +127,8 @@ namespace NezvalPiano {
 		protected override void OnMouseMove(MouseEventArgs e) {
 			base.OnMouseMove(e);
 			if (leftMouseDown) {
+				LastCursorLocation = e.Location;
+				Invalidate(false);
 			}
 		}
 
@@ -129,8 +140,14 @@ namespace NezvalPiano {
 			}
 		}
 
-		private NoteEnum WhiteNoteIndexToNote(int noteIndex) {
-
+		private static NoteEnum WhiteNoteIndexToNote(int noteIndex) {
+			int index = noteIndex * 2 + 1;
+			int toSubtract = noteIndex / 7;
+			int portion = noteIndex % 7;
+			index -= toSubtract * 2;
+			if (portion >= 3)
+				portion--;
+			return (NoteEnum) index;
 		}
 
 		private NoteEnum CalculateNoteFromPoint(Point point) {
@@ -148,12 +165,12 @@ namespace NezvalPiano {
 				int temp;
 				const int blackKeyIntervalCount = WhiteKeyCount - 1;
 
-				//draw black keys
+				/*//draw black keys
 				for (i = 0; i < blackKeyIntervalCount; ++i) {
 					temp = i % 7;
 					if (!(temp == 2 || temp == 6)) //skip every 2nd and 6th key
 						e.Graphics.FillRectangle(Brushes.Black, x + i * whiteKeyWidth + blackKeyOffset, y, blackKeyWidth, blackKeyHeight);
-				}
+				}*/
 				return (NoteEnum) noteIndex;
 			} else
 				return WhiteNoteIndexToNote(noteIndex);
@@ -181,23 +198,45 @@ namespace NezvalPiano {
 			int blackKeyOffset = whiteKeyWidth - blackKeyWidth / 2;
 			int pianoWidth = PianoWidth;
 			int x = (Width - pianoWidth) / 2;
-			int y = lineThickness / 2;
+			const int y = lineThickness / 2;
 			int height = Height - lineThickness;
 			//fill piano background
 			e.Graphics.FillRectangle(Brushes.White, x, y, pianoWidth, height);
-			int i;
+			int i, keyStart;
 			//draw white keys
-			for (i = 0; i < WhiteKeyCount; ++i)
-				e.Graphics.DrawRectangle(KeyOutline, x + i * whiteKeyWidth, y, whiteKeyWidth, height);
+			Rectangle rect = new Rectangle();
+			bool isBlack = false;
+			for (i = 0; i < WhiteKeyCount; ++i) {
+				keyStart = x + i * whiteKeyWidth;
+				if (leftMouseDown && rect.Width == 0 && keyStart <= LastCursorLocation.X && keyStart + whiteKeyWidth > LastCursorLocation.X)
+					rect = new Rectangle(keyStart, y, whiteKeyWidth, height);
+				e.Graphics.DrawRectangle(KeyOutline, keyStart, y, whiteKeyWidth, height);
+			}
 			int temp;
 			const int blackKeyIntervalCount = WhiteKeyCount - 1;
 			int blackKeyHeight = (height * 4) / 7;
 			//draw black keys
 			for (i = 0; i < blackKeyIntervalCount; ++i) {
 				temp = i % 7;
-				if (!(temp == 2 || temp == 6)) //skip every 2nd and 6th key
-					e.Graphics.FillRectangle(Brushes.Black, x + i * whiteKeyWidth + blackKeyOffset, y, blackKeyWidth, blackKeyHeight);
+				if (!(temp == 2 || temp == 6)) { //skip every 2nd and 6th key
+					keyStart = x + i * whiteKeyWidth + blackKeyOffset;
+					if (leftMouseDown && LastCursorLocation.Y < blackKeyHeight && keyStart <= LastCursorLocation.X && keyStart + blackKeyWidth > LastCursorLocation.X) {
+						rect = new Rectangle(keyStart, y, blackKeyWidth, blackKeyHeight);
+						isBlack = true;
+					} else
+						e.Graphics.FillRectangle(Brushes.Black, keyStart, y, blackKeyWidth, blackKeyHeight);
+				}
 			}
+			if (rect.Width != 0) {
+				if (isBlack)
+					e.Graphics.FillRectangle(Brushes.Blue, rect);
+				else {
+					e.Graphics.FillRectangle(Brushes.DarkSlateGray, rect);
+					e.Graphics.FillRectangle(Brushes.Black, rect.X - blackKeyOffset / 2, y, blackKeyWidth, blackKeyHeight);
+					e.Graphics.FillRectangle(Brushes.Black, rect.X + blackKeyOffset, y, blackKeyWidth, blackKeyHeight);
+				}
+			}
+			
 			if (showHint) {
 				e.Graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 				e.Graphics.CompositingMode = CompositingMode.SourceOver;
