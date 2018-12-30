@@ -28,6 +28,18 @@
 		A5,
 		ASharp5,
 		B5,
-		C6
+		C6,
+		CSharp6,
+		D6,
+		DSharp6,
+		E6,
+		F6,
+		FSharp6,
+		G6,
+		GSharp6,
+		A6,
+		ASharp6,
+		B6,
+		C7
 	}
 }
