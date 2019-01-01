@@ -47,6 +47,7 @@ namespace NezvalPiano {
 		private int widthScale = 100;
 		private Point LastCursorLocation;
 		private bool leftMouseDown, showHint;
+		private NoteEnum lastNote;
 
 		/// <summary>
 		/// Gets or sets whether to show the resize hint text
@@ -134,6 +135,9 @@ namespace NezvalPiano {
 			if (e.Button == MouseButtons.Left) {
 				LastCursorLocation = e.Location;
 				leftMouseDown = true;
+				lastNote = CalculateNoteFromPoint(e.Location);
+				if (lastNote != NoteEnum.None)
+					MidiPlayer.PlayNote(lastNote);
 				Rectangle bounds = PianoBounds;
 				if (bounds.Contains(e.Location))
 					Invalidate(false);
@@ -144,6 +148,14 @@ namespace NezvalPiano {
 			base.OnMouseMove(e);
 			if (leftMouseDown) {
 				LastCursorLocation = e.Location;
+				NoteEnum currentNote = CalculateNoteFromPoint(e.Location);
+				if (currentNote != lastNote) {
+					if (lastNote != NoteEnum.None)
+						MidiPlayer.PlayNote(lastNote, NoteVolume.silent);
+					lastNote = currentNote;
+					if (currentNote != NoteEnum.None)
+						MidiPlayer.PlayNote(currentNote);
+				}
 				Invalidate(false);
 			}
 		}
@@ -152,6 +164,8 @@ namespace NezvalPiano {
 			base.OnMouseUp(e);
 			if (e.Button == MouseButtons.Left) {
 				leftMouseDown = false;
+				if (lastNote != NoteEnum.None)
+					MidiPlayer.PlayNote(lastNote, NoteVolume.silent);
 				Invalidate(false);
 			}
 		}
@@ -181,7 +195,7 @@ namespace NezvalPiano {
 			int whiteKeyWidth = WhiteKeyWidth;
 			Size clientSize = ClientSize;
 			int x = (clientSize.Width - PianoWidth) / 2;
-			if (point.X < x)
+			if (point.X < x || point.X >= x + PianoWidth)
 				return NoteEnum.None;
 			int xLoc = point.X - x;
 			NoteEnum whiteNote = WhiteNoteIndexToNote(xLoc / whiteKeyWidth);

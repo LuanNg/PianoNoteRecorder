@@ -50,6 +50,7 @@
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="MidiPlayer.cs" />
     <Compile Include="MusicKeyboard.cs">
       <SubType>CommonControls</SubType>
     </Compile>
@@ -61,6 +62,7 @@
     </Compile>
     <Compile Include="NoteEnum.cs" />
     <Compile Include="NoteLength.cs" />
+    <Compile Include="NoteVolume.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
