@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Text;
 using System.Windows.Forms;
 
 namespace NezvalPiano {
@@ -38,18 +40,24 @@ namespace NezvalPiano {
 		/// Draws the musical staff
 		/// </summary>
 		protected override void OnPaint(PaintEventArgs e) {
+			e.Graphics.CompositingMode = CompositingMode.SourceCopy;
+			e.Graphics.CompositingQuality = CompositingQuality.HighSpeed;
+			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighSpeed;
+			e.Graphics.SmoothingMode = SmoothingMode.HighSpeed;
 			e.Graphics.Clear(BackColor);
 			base.OnPaint(e);
 			Size clientSize = ClientSize;
-			int y = 15;
+			const int barVerticalDistance = 20;
+			int y = barVerticalDistance / 2;
 			int i;
 			do {
 				for (i = 0; i < 5; ++i) {
-					y += 15;
+					y += 10;
 					e.Graphics.DrawLine(Pens.Black, 0, y, clientSize.Width, y);
 				}
-				y += 25;
+				y += barVerticalDistance;
 			} while (y < clientSize.Height);
+
 		}
 
 		protected override void OnScroll(ScrollEventArgs se) {

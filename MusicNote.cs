@@ -1,7 +1,7 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace NezvalPiano {
@@ -17,7 +17,7 @@ namespace NezvalPiano {
 		/// <summary>
 		/// The length in milliseconds for a half-hemidemisemiquaver
 		/// </summary>
-		private static float millisPerHalfHemiDemiSemiQuaver = 467 / 32;
+		private static float millisPerHalfHemiDemiSemiQuaver = 467 / 32f;
 		/// <summary>
 		/// An integer enumeration that represents notes on a scale
 		/// </summary>
@@ -114,6 +114,17 @@ namespace NezvalPiano {
 			}
 			if (!(leftButtonDown || rightButtonDown))
 				Capture = false;
+		}
+
+		/// <summary>
+		/// Draws the current note
+		/// </summary>
+		protected override void OnPaint(PaintEventArgs e) {
+			base.OnPaint(e);
+			e.Graphics.CompositingMode = CompositingMode.SourceOver;
+			e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
+			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
 		}
 	}
 }

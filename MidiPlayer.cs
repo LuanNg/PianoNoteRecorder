@@ -35,7 +35,7 @@ namespace NezvalPiano {
 
 		public static void PlayNote(NoteEnum note, NoteVolume volume = NoteVolume.ffff) {
 			const byte command = 0x90; //play piano note
-			CheckError(midiOutShortMsg(Handle, (((byte) volume) << 16) + (((byte) note + 47) << 8) + command));
+			CheckError(midiOutShortMsg(Handle, (((byte) volume) << 16) + (((byte) note + 35) << 8) + command)); //12 notes per octave
 		}
 
 		[DllImport("winmm.dll")]

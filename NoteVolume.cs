@@ -1,4 +1,7 @@
 ﻿namespace NezvalPiano {
+	/// <summary>
+	/// Contains all available note loudness presets
+	/// </summary>
 	public enum NoteVolume : byte {
 		silent = 0,
 		pppp = 8,

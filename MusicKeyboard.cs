@@ -35,7 +35,8 @@ namespace NezvalPiano {
 		/// <summary>
 		/// The number of white keys in the keyboard
 		/// </summary>
-		private const int WhiteKeyCount = 22;
+		private const int WhiteKeyCount = 29; //7 per octave + 1
+		private const int MiddleCPos = 14; //7 per octave
 		/// <summary>
 		/// The key outline
 		/// </summary>
@@ -87,6 +88,9 @@ namespace NezvalPiano {
 			}
 		}
 
+		/// <summary>
+		/// Calculates the boundaries of the piano keyboard
+		/// </summary>
 		private Rectangle PianoBounds {
 			get {
 				int pianoWidth = PianoWidth;
@@ -96,7 +100,7 @@ namespace NezvalPiano {
 		}
 
 		/// <summary>
-		/// Calculates the width of the piano to be drawn
+		/// Calculates the width of the piano keyboard to be drawn
 		/// </summary>
 		private int PianoWidth {
 			get {
@@ -130,12 +134,15 @@ namespace NezvalPiano {
 			Text = "Top of piano can also be resized using mouse";
 		}
 
+		/// <summary>
+		/// Called when a mouse button is pressed onto the piano keyboard
+		/// </summary>
 		protected override void OnMouseDown(MouseEventArgs e) {
 			base.OnMouseDown(e);
 			if (e.Button == MouseButtons.Left) {
 				LastCursorLocation = e.Location;
 				leftMouseDown = true;
-				lastNote = CalculateNoteFromPoint(e.Location);
+				lastNote = GetNoteAtPoint(e.Location);
 				if (lastNote != NoteEnum.None)
 					MidiPlayer.PlayNote(lastNote);
 				Rectangle bounds = PianoBounds;
@@ -144,11 +151,14 @@ namespace NezvalPiano {
 			}
 		}
 
+		/// <summary>
+		/// Called when the mouse is moved on the piano keyboard
+		/// </summary>
 		protected override void OnMouseMove(MouseEventArgs e) {
 			base.OnMouseMove(e);
 			if (leftMouseDown) {
 				LastCursorLocation = e.Location;
-				NoteEnum currentNote = CalculateNoteFromPoint(e.Location);
+				NoteEnum currentNote = GetNoteAtPoint(e.Location);
 				if (currentNote != lastNote) {
 					if (lastNote != NoteEnum.None)
 						MidiPlayer.PlayNote(lastNote, NoteVolume.silent);
@@ -160,6 +170,9 @@ namespace NezvalPiano {
 			}
 		}
 
+		/// <summary>
+		/// Called when a mouse button is released on the piano keyboard
+		/// </summary>
 		protected override void OnMouseUp(MouseEventArgs e) {
 			base.OnMouseUp(e);
 			if (e.Button == MouseButtons.Left) {
@@ -170,6 +183,10 @@ namespace NezvalPiano {
 			}
 		}
 
+		/// <summary>
+		/// Returns whether the specified note has adjacent black keys next to it
+		/// </summary>
+		/// <param name="note">The white note</param>
 		private static HasBlackKeys CheckIfWhiteNoteHasBlackKeys(NoteEnum note) {
 			HasBlackKeys flags = HasBlackKeys.None;
 			if (note == NoteEnum.None || note.ToString().Contains("Sharp"))
@@ -181,6 +198,10 @@ namespace NezvalPiano {
 			return flags;
 		}
 
+		/// <summary>
+		/// Calculates the specified nth white note
+		/// </summary>
+		/// <param name="noteIndex">The specified white note index</param>
 		private static NoteEnum WhiteNoteIndexToNote(int noteIndex) {
 			int index = noteIndex * 2 + 1;
 			int toSubtract = noteIndex / 7;
@@ -191,7 +212,11 @@ namespace NezvalPiano {
 			return (NoteEnum) index;
 		}
 
-		private NoteEnum CalculateNoteFromPoint(Point point) {
+		/// <summary>
+		/// Calculates the note at the specified position
+		/// </summary>
+		/// <param name="point">The point on the keyboard canvas</param>
+		private NoteEnum GetNoteAtPoint(Point point) {
 			int whiteKeyWidth = WhiteKeyWidth;
 			Size clientSize = ClientSize;
 			int x = (clientSize.Width - PianoWidth) / 2;
@@ -252,6 +277,8 @@ namespace NezvalPiano {
 				keyStart = x + i * whiteKeyWidth;
 				if (leftMouseDown && rect.Width == 0 && keyStart <= LastCursorLocation.X && keyStart + whiteKeyWidth > LastCursorLocation.X)
 					rect = new Rectangle(keyStart, halfLineThickness, whiteKeyWidth, height);
+				if (i == MiddleCPos)
+					e.Graphics.FillRectangle(Brushes.LightSkyBlue, keyStart, halfLineThickness, whiteKeyWidth, height);
 				e.Graphics.DrawRectangle(KeyOutline, keyStart, halfLineThickness, whiteKeyWidth, height);
 			}
 			int temp;
