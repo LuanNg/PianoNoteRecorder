@@ -117,4 +117,53 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Crotchet" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Crotchet.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CrotchetR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CrotchetR.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="DotMinim" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DotMinim.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Flat" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Flat.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="minim" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\minim.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="MinimR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\MinimR.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Natural" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Natural.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Quaver" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Quaver.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="QuaverR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\QuaverR.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SemiBreve" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SemiBreve.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SemiBreveR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SemiBreveR.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SemiQuaver" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SemiQuaver.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SemiQuaverR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SemiQuaverR.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Sharp" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Sharp.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Treble" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Treble.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="_44" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\44.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

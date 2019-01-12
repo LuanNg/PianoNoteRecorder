@@ -7,8 +7,8 @@
     <ProjectGuid>{00A1B72B-3A6C-4C86-935C-727E23ED2012}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NezvalPiano</RootNamespace>
-    <AssemblyName>NezvalPiano</AssemblyName>
+    <RootNamespace>PianoNoteRecorder</RootNamespace>
+    <AssemblyName>PianoNoteRecorder</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -84,6 +84,22 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <None Include="Resources\Treble.png" />
+    <None Include="Resources\Sharp.png" />
+    <None Include="Resources\SemiQuaverR.png" />
+    <None Include="Resources\SemiQuaver.png" />
+    <None Include="Resources\SemiBreveR.png" />
+    <None Include="Resources\SemiBreve.png" />
+    <None Include="Resources\QuaverR.png" />
+    <None Include="Resources\Quaver.png" />
+    <None Include="Resources\Natural.png" />
+    <None Include="Resources\MinimR.png" />
+    <None Include="Resources\minim.png" />
+    <None Include="Resources\Flat.png" />
+    <None Include="Resources\DotMinim.png" />
+    <None Include="Resources\CrotchetR.png" />
+    <None Include="Resources\Crotchet.png" />
+    <None Include="Resources\44.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

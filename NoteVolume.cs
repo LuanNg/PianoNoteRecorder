@@ -1,4 +1,4 @@
-﻿namespace NezvalPiano {
+﻿namespace PianoNoteRecorder {
 	/// <summary>
 	/// Contains all available note loudness presets
 	/// </summary>

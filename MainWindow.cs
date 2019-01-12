@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace NezvalPiano {
+namespace PianoNoteRecorder {
 	/// <summary>
 	/// The main window of the application
 	/// </summary>
@@ -32,6 +32,16 @@ namespace NezvalPiano {
 		protected override void OnShown(EventArgs e) {
 			base.OnShown(e);
 			playButton.Focus();
+		}
+
+		protected override void OnKeyDown(KeyEventArgs e) {
+			base.OnKeyDown(e);
+			musicKeyboard.MarkKeyPressed(e);
+		}
+
+		protected override void OnKeyUp(KeyEventArgs e) {
+			base.OnKeyUp(e);
+			musicKeyboard.MarkKeyReleased(e);
 		}
 
 		/// <summary>
@@ -125,6 +135,7 @@ namespace NezvalPiano {
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+			this.musicStaff = new PianoNoteRecorder.MusicStaff();
 			this.controlPanel = new System.Windows.Forms.Panel();
 			this.beatLengthLabel = new System.Windows.Forms.Label();
 			this.clearAllButton = new System.Windows.Forms.Button();
@@ -133,20 +144,19 @@ namespace NezvalPiano {
 			this.beatLengthSelector = new System.Windows.Forms.NumericUpDown();
 			this.saveButton = new System.Windows.Forms.Button();
 			this.loadButton = new System.Windows.Forms.Button();
+			this.musicKeyboard = new PianoNoteRecorder.MusicKeyboard();
 			this.zoomTrackBar = new System.Windows.Forms.TrackBar();
-			this.musicStaff = new NezvalPiano.MusicStaff();
-			this.musicKeyboard = new NezvalPiano.MusicKeyboard();
-			((System.ComponentModel.ISupportInitialize) (this.splitContainer1)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
 			this.splitContainer1.Panel2.SuspendLayout();
 			this.splitContainer1.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize) (this.splitContainer2)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
 			this.splitContainer2.Panel1.SuspendLayout();
 			this.splitContainer2.Panel2.SuspendLayout();
 			this.splitContainer2.SuspendLayout();
 			this.controlPanel.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize) (this.beatLengthSelector)).BeginInit();
-			((System.ComponentModel.ISupportInitialize) (this.zoomTrackBar)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.beatLengthSelector)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.zoomTrackBar)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// splitContainer1
@@ -195,6 +205,18 @@ namespace NezvalPiano {
 			this.splitContainer2.SplitterWidth = 1;
 			this.splitContainer2.TabIndex = 1;
 			// 
+			// musicStaff
+			// 
+			this.musicStaff.AutoScroll = true;
+			this.musicStaff.AutoScrollMinSize = new System.Drawing.Size(594, 1000);
+			this.musicStaff.BackColor = System.Drawing.Color.White;
+			this.musicStaff.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.musicStaff.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.musicStaff.Location = new System.Drawing.Point(0, 0);
+			this.musicStaff.Name = "musicStaff";
+			this.musicStaff.Size = new System.Drawing.Size(632, 285);
+			this.musicStaff.TabIndex = 0;
+			// 
 			// controlPanel
 			// 
 			this.controlPanel.BackColor = System.Drawing.SystemColors.Control;
@@ -212,7 +234,7 @@ namespace NezvalPiano {
 			// 
 			// beatLengthLabel
 			// 
-			this.beatLengthLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
+			this.beatLengthLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.beatLengthLabel.Location = new System.Drawing.Point(0, 0);
 			this.beatLengthLabel.Name = "beatLengthLabel";
 			this.beatLengthLabel.Size = new System.Drawing.Size(96, 30);
@@ -222,7 +244,7 @@ namespace NezvalPiano {
 			// 
 			// clearAllButton
 			// 
-			this.clearAllButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
+			this.clearAllButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.clearAllButton.Location = new System.Drawing.Point(495, 0);
 			this.clearAllButton.Name = "clearAllButton";
 			this.clearAllButton.Size = new System.Drawing.Size(95, 31);
@@ -233,7 +255,7 @@ namespace NezvalPiano {
 			// 
 			// stopButton
 			// 
-			this.stopButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
+			this.stopButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.stopButton.Location = new System.Drawing.Point(246, 0);
 			this.stopButton.Name = "stopButton";
 			this.stopButton.Size = new System.Drawing.Size(77, 31);
@@ -244,7 +266,7 @@ namespace NezvalPiano {
 			// 
 			// playButton
 			// 
-			this.playButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
+			this.playButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.playButton.Location = new System.Drawing.Point(163, 0);
 			this.playButton.Name = "playButton";
 			this.playButton.Size = new System.Drawing.Size(77, 31);
@@ -255,31 +277,31 @@ namespace NezvalPiano {
 			// 
 			// beatLengthSelector
 			// 
-			this.beatLengthSelector.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
+			this.beatLengthSelector.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.beatLengthSelector.Location = new System.Drawing.Point(97, 5);
 			this.beatLengthSelector.Maximum = new decimal(new int[] {
-			10000,
-			0,
-			0,
-			0});
+            10000,
+            0,
+            0,
+            0});
 			this.beatLengthSelector.Minimum = new decimal(new int[] {
-			1,
-			0,
-			0,
-			0});
+            1,
+            0,
+            0,
+            0});
 			this.beatLengthSelector.Name = "beatLengthSelector";
 			this.beatLengthSelector.Size = new System.Drawing.Size(60, 21);
 			this.beatLengthSelector.TabIndex = 4;
 			this.beatLengthSelector.Value = new decimal(new int[] {
-			467,
-			0,
-			0,
-			0});
+            467,
+            0,
+            0,
+            0});
 			this.beatLengthSelector.ValueChanged += new System.EventHandler(this.beatLengthSelector_ValueChanged);
 			// 
 			// saveButton
 			// 
-			this.saveButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
+			this.saveButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.saveButton.Location = new System.Drawing.Point(329, 0);
 			this.saveButton.Name = "saveButton";
 			this.saveButton.Size = new System.Drawing.Size(77, 31);
@@ -290,7 +312,7 @@ namespace NezvalPiano {
 			// 
 			// loadButton
 			// 
-			this.loadButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
+			this.loadButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.loadButton.Location = new System.Drawing.Point(412, 0);
 			this.loadButton.Name = "loadButton";
 			this.loadButton.Size = new System.Drawing.Size(77, 31);
@@ -298,6 +320,20 @@ namespace NezvalPiano {
 			this.loadButton.Text = "Load ←";
 			this.loadButton.UseVisualStyleBackColor = true;
 			this.loadButton.Click += new System.EventHandler(this.loadButton_Click);
+			// 
+			// musicKeyboard
+			// 
+			this.musicKeyboard.BackColor = System.Drawing.SystemColors.Control;
+			this.musicKeyboard.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+			this.musicKeyboard.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.musicKeyboard.Font = new System.Drawing.Font("Arial", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.musicKeyboard.Location = new System.Drawing.Point(25, 0);
+			this.musicKeyboard.Name = "musicKeyboard";
+			this.musicKeyboard.ShowHint = false;
+			this.musicKeyboard.Size = new System.Drawing.Size(607, 126);
+			this.musicKeyboard.TabIndex = 1;
+			this.musicKeyboard.Text = "Top of piano can also be resized using mouse";
+			this.musicKeyboard.WidthScalePercentage = 100;
 			// 
 			// zoomTrackBar
 			// 
@@ -315,32 +351,6 @@ namespace NezvalPiano {
 			this.zoomTrackBar.Value = 100;
 			this.zoomTrackBar.Scroll += new System.EventHandler(this.zoomTrackBar_Scroll);
 			// 
-			// musicStaff
-			// 
-			this.musicStaff.AutoScroll = true;
-			this.musicStaff.AutoScrollMinSize = new System.Drawing.Size(594, 1000);
-			this.musicStaff.BackColor = System.Drawing.Color.White;
-			this.musicStaff.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			this.musicStaff.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.musicStaff.Location = new System.Drawing.Point(0, 0);
-			this.musicStaff.Name = "musicStaff";
-			this.musicStaff.Size = new System.Drawing.Size(632, 285);
-			this.musicStaff.TabIndex = 0;
-			// 
-			// musicKeyboard
-			// 
-			this.musicKeyboard.BackColor = System.Drawing.SystemColors.Control;
-			this.musicKeyboard.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-			this.musicKeyboard.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.musicKeyboard.Font = new System.Drawing.Font("Arial", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
-			this.musicKeyboard.Location = new System.Drawing.Point(25, 0);
-			this.musicKeyboard.Name = "musicKeyboard";
-			this.musicKeyboard.ShowHint = false;
-			this.musicKeyboard.Size = new System.Drawing.Size(607, 126);
-			this.musicKeyboard.TabIndex = 1;
-			this.musicKeyboard.Text = "Top of piano can also be resized using mouse";
-			this.musicKeyboard.WidthScalePercentage = 100;
-			// 
 			// MainWindow
 			// 
 			this.AcceptButton = this.playButton;
@@ -349,21 +359,22 @@ namespace NezvalPiano {
 			this.ClientSize = new System.Drawing.Size(632, 454);
 			this.Controls.Add(this.splitContainer1);
 			this.DoubleBuffered = true;
-			this.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
+			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+			this.KeyPreview = true;
 			this.MinimumSize = new System.Drawing.Size(300, 100);
 			this.Name = "MainWindow";
-			this.Text = "Note Recorder";
+			this.Text = "Piano Note Recorder";
 			this.splitContainer1.Panel1.ResumeLayout(false);
 			this.splitContainer1.Panel2.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize) (this.splitContainer1)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
 			this.splitContainer1.ResumeLayout(false);
 			this.splitContainer2.Panel1.ResumeLayout(false);
 			this.splitContainer2.Panel2.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize) (this.splitContainer2)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
 			this.splitContainer2.ResumeLayout(false);
 			this.controlPanel.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize) (this.beatLengthSelector)).EndInit();
-			((System.ComponentModel.ISupportInitialize) (this.zoomTrackBar)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.beatLengthSelector)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.zoomTrackBar)).EndInit();
 			this.ResumeLayout(false);
 
 		}

@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Windows.Forms;
 
-namespace NezvalPiano {
+namespace PianoNoteRecorder {
 	/// <summary>
 	/// An interactive piano keyboard for note generation within a musical staff
 	/// </summary>
@@ -28,6 +31,44 @@ namespace NezvalPiano {
 			Sharp
 		}
 
+		private enum KeyboardPianoKeys {
+			None = 0,
+			Q,
+			W,
+			E,
+			R,
+			T,
+			Y,
+			U,
+			I,
+			O,
+			P,
+			OemOpenBrackets,
+			Oem6,
+			A,
+			S,
+			D,
+			F,
+			G,
+			H,
+			J,
+			K,
+			L,
+			Oem1,
+			Oem7,
+			Z,
+			X,
+			C,
+			V,
+			B,
+			N,
+			M,
+			Oemcomma,
+			OemPeriod,
+			OemQuestion,
+			ShiftKey
+		}
+
 		/// <summary>
 		/// The thickness of the white key outline
 		/// </summary>
@@ -37,9 +78,9 @@ namespace NezvalPiano {
 		/// </summary>
 		private const int WhiteKeyCount = 29; //7 per octave + 1
 		private const int MiddleCPos = 14; //7 per octave
-		/// <summary>
-		/// The key outline
-		/// </summary>
+										   /// <summary>
+										   /// The key outline
+										   /// </summary>
 		private static Pen KeyOutline = new Pen(Color.Black, lineThickness);
 		private static StringFormat textFormat = new StringFormat(StringFormatFlags.NoClip) {
 			Alignment = StringAlignment.Center,
@@ -48,7 +89,8 @@ namespace NezvalPiano {
 		private int widthScale = 100;
 		private Point LastCursorLocation;
 		private bool leftMouseDown, showHint;
-		private NoteEnum lastNote;
+		private NoteEnum lastMouseNote;
+		private HashSet<NoteEnum> pressedNotes = new HashSet<NoteEnum>();
 
 		/// <summary>
 		/// Gets or sets whether to show the resize hint text
@@ -142,12 +184,12 @@ namespace NezvalPiano {
 			if (e.Button == MouseButtons.Left) {
 				LastCursorLocation = e.Location;
 				leftMouseDown = true;
-				lastNote = GetNoteAtPoint(e.Location);
-				if (lastNote != NoteEnum.None)
-					MidiPlayer.PlayNote(lastNote);
-				Rectangle bounds = PianoBounds;
-				if (bounds.Contains(e.Location))
+				lastMouseNote = GetNoteAtPoint(e.Location);
+				if (lastMouseNote != NoteEnum.None) {
+					pressedNotes.Add(lastMouseNote);
+					MidiPlayer.PlayNote(lastMouseNote);
 					Invalidate(false);
+				}
 			}
 		}
 
@@ -159,14 +201,18 @@ namespace NezvalPiano {
 			if (leftMouseDown) {
 				LastCursorLocation = e.Location;
 				NoteEnum currentNote = GetNoteAtPoint(e.Location);
-				if (currentNote != lastNote) {
-					if (lastNote != NoteEnum.None)
-						MidiPlayer.PlayNote(lastNote, NoteVolume.silent);
-					lastNote = currentNote;
-					if (currentNote != NoteEnum.None)
+				if (!pressedNotes.Contains(currentNote)) {
+					if (lastMouseNote != NoteEnum.None) {
+						pressedNotes.Remove(lastMouseNote);
+						MidiPlayer.PlayNote(lastMouseNote, NoteVolume.silent);
+					}
+					lastMouseNote = currentNote;
+					if (currentNote != NoteEnum.None) {
+						pressedNotes.Add(currentNote);
 						MidiPlayer.PlayNote(currentNote);
+					}
+					Invalidate(false);
 				}
-				Invalidate(false);
 			}
 		}
 
@@ -177,8 +223,45 @@ namespace NezvalPiano {
 			base.OnMouseUp(e);
 			if (e.Button == MouseButtons.Left) {
 				leftMouseDown = false;
-				if (lastNote != NoteEnum.None)
-					MidiPlayer.PlayNote(lastNote, NoteVolume.silent);
+				if (lastMouseNote != NoteEnum.None) {
+					pressedNotes.Remove(lastMouseNote);
+					MidiPlayer.PlayNote(lastMouseNote, NoteVolume.silent);
+					lastMouseNote = NoteEnum.None;
+				}
+				Invalidate(false);
+			}
+		}
+
+		public void MarkKeyPressed(KeyEventArgs key) {
+			OnKeyDown(key);
+		}
+
+		private static NoteEnum GetNoteFromKey(Keys key) {
+			KeyboardPianoKeys pianoKey;
+			bool valid = Enum.TryParse(key.ToString(), out pianoKey);
+			return valid ? ((NoteEnum) pianoKey + 12) : NoteEnum.None;
+		}
+
+		protected override void OnKeyDown(KeyEventArgs e) {
+			base.OnKeyDown(e);
+			NoteEnum note = GetNoteFromKey(e.KeyCode);
+			if (!(note == NoteEnum.None || pressedNotes.Contains(note))) {
+				pressedNotes.Add(note);
+				MidiPlayer.PlayNote(note);
+				Invalidate(false);
+			}
+		}
+
+		public void MarkKeyReleased(KeyEventArgs key) {
+			OnKeyUp(key);
+		}
+
+		protected override void OnKeyUp(KeyEventArgs e) {
+			base.OnKeyUp(e);
+			NoteEnum note = GetNoteFromKey(e.KeyCode);
+			if (!(note == NoteEnum.None || note == lastMouseNote) && pressedNotes.Contains(note)) {
+				pressedNotes.Remove(note);
+				MidiPlayer.PlayNote(note, NoteVolume.silent);
 				Invalidate(false);
 			}
 		}
@@ -189,13 +272,17 @@ namespace NezvalPiano {
 		/// <param name="note">The white note</param>
 		private static HasBlackKeys CheckIfWhiteNoteHasBlackKeys(NoteEnum note) {
 			HasBlackKeys flags = HasBlackKeys.None;
-			if (note == NoteEnum.None || note.ToString().Contains("Sharp"))
+			if (note == NoteEnum.None || IsSharp(note))
 				return flags;
-			if ((note - 1).ToString().Contains("Sharp"))
+			if (IsSharp(note - 1))
 				flags |= HasBlackKeys.Flat;
-			if ((note + 1).ToString().Contains("Sharp"))
+			if (IsSharp(note + 1))
 				flags |= HasBlackKeys.Sharp;
 			return flags;
+		}
+
+		private static bool IsSharp(NoteEnum note) {
+			return note.ToString().Contains("Sharp");
 		}
 
 		/// <summary>
@@ -271,12 +358,16 @@ namespace NezvalPiano {
 			e.Graphics.FillRectangle(Brushes.White, x, halfLineThickness, pianoWidth, height);
 			int i, keyStart;
 			//draw white keys
-			Rectangle rect = new Rectangle();
-			bool isWhite = true;
+			List<Rectangle> pressedWhite = new List<Rectangle>();
+			List<Rectangle> pressedBlack = new List<Rectangle>();
+			NoteEnum currentNote;
 			for (i = 0; i < WhiteKeyCount; ++i) {
 				keyStart = x + i * whiteKeyWidth;
-				if (leftMouseDown && rect.Width == 0 && keyStart <= LastCursorLocation.X && keyStart + whiteKeyWidth > LastCursorLocation.X)
-					rect = new Rectangle(keyStart, halfLineThickness, whiteKeyWidth, height);
+				currentNote = WhiteNoteIndexToNote(i);
+				if ((leftMouseDown && keyStart <= LastCursorLocation.X && keyStart + whiteKeyWidth > LastCursorLocation.X && !IsSharp(GetNoteAtPoint(LastCursorLocation))) ||
+					pressedNotes.Contains(currentNote)) {
+					pressedWhite.Add(new Rectangle(keyStart, halfLineThickness, whiteKeyWidth, height));
+				}
 				if (i == MiddleCPos)
 					e.Graphics.FillRectangle(Brushes.LightSkyBlue, keyStart, halfLineThickness, whiteKeyWidth, height);
 				e.Graphics.DrawRectangle(KeyOutline, keyStart, halfLineThickness, whiteKeyWidth, height);
@@ -289,29 +380,31 @@ namespace NezvalPiano {
 				temp = i % 7;
 				if (!(temp == 2 || temp == 6)) { //skip every 2nd and 6th key
 					keyStart = x + i * whiteKeyWidth + blackKeyOffset;
-					if (leftMouseDown && LastCursorLocation.Y < blackKeyHeight && keyStart <= LastCursorLocation.X && keyStart + blackKeyWidth > LastCursorLocation.X) {
-						rect = new Rectangle(keyStart, lineThickness, blackKeyWidth, blackKeyHeight);
-						isWhite = false;
-					} else
+					if ((leftMouseDown && LastCursorLocation.Y < blackKeyHeight && keyStart <= LastCursorLocation.X && keyStart + blackKeyWidth > LastCursorLocation.X) ||
+						pressedNotes.Contains(WhiteNoteIndexToNote(i) + 1))
+						pressedBlack.Add(new Rectangle(keyStart, lineThickness, blackKeyWidth, blackKeyHeight));
+					else
 						e.Graphics.FillRectangle(Brushes.Black, keyStart, lineThickness, blackKeyWidth, blackKeyHeight);
 				}
 			}
-			if (rect.Width != 0) {
-				if (isWhite) {
-					e.Graphics.FillRectangle(Brushes.Blue, new Rectangle(rect.X + halfLineThickness, rect.Y + halfLineThickness, rect.Width - lineThickness, rect.Height - lineThickness));
-					NoteEnum note = WhiteNoteIndexToNote((rect.X - x) / whiteKeyWidth);
-					HasBlackKeys hasBlackKeys = CheckIfWhiteNoteHasBlackKeys(note);
-					if ((hasBlackKeys & HasBlackKeys.Flat) == HasBlackKeys.Flat)
-						e.Graphics.FillRectangle(Brushes.Black, rect.X - halfBlackKeyWidth, lineThickness, blackKeyWidth, blackKeyHeight);
-					if ((hasBlackKeys & HasBlackKeys.Sharp) == HasBlackKeys.Sharp)
-						e.Graphics.FillRectangle(Brushes.Black, rect.X + blackKeyOffset, lineThickness, blackKeyWidth, blackKeyHeight);
-				} else {
-					e.Graphics.FillRectangle(Brushes.Blue, rect);
-					rect.X += halfLineThickness;
-					rect.Y -= halfLineThickness;
-					rect.Width -= lineThickness;
-					e.Graphics.DrawRectangle(KeyOutline, rect);
-				}
+			Rectangle rect;
+			for (i = 0; i < pressedWhite.Count; i++) {
+				rect = pressedWhite[i];
+				e.Graphics.FillRectangle(Brushes.Blue, new Rectangle(rect.X + halfLineThickness, rect.Y + halfLineThickness, rect.Width - lineThickness, rect.Height - lineThickness));
+				NoteEnum note = WhiteNoteIndexToNote((rect.X - x) / whiteKeyWidth);
+				HasBlackKeys hasBlackKeys = CheckIfWhiteNoteHasBlackKeys(note);
+				if ((hasBlackKeys & HasBlackKeys.Flat) == HasBlackKeys.Flat)
+					e.Graphics.FillRectangle(Brushes.Black, rect.X - halfBlackKeyWidth, lineThickness, blackKeyWidth, blackKeyHeight);
+				if ((hasBlackKeys & HasBlackKeys.Sharp) == HasBlackKeys.Sharp)
+					e.Graphics.FillRectangle(Brushes.Black, rect.X + blackKeyOffset, lineThickness, blackKeyWidth, blackKeyHeight);
+			}
+			for (i = 0; i < pressedBlack.Count; i++) {
+				rect = pressedBlack[i];
+				e.Graphics.FillRectangle(Brushes.Blue, rect);
+				rect.X += halfLineThickness;
+				rect.Y -= halfLineThickness;
+				rect.Width -= lineThickness;
+				e.Graphics.DrawRectangle(KeyOutline, rect);
 			}
 			if (showHint) {
 				e.Graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NezvalPiano", "NezvalPiano.csproj", "{00A1B72B-3A6C-4C86-935C-727E23ED2012}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PianoNoteRecorder", "PianoNoteRecorder.csproj", "{00A1B72B-3A6C-4C86-935C-727E23ED2012}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

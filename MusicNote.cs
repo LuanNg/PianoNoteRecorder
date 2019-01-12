@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
-namespace NezvalPiano {
+namespace PianoNoteRecorder {
 	/// <summary>
 	/// Represents a musical note object to be placed on a musical staff
 	/// </summary>

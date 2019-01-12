@@ -4,7 +4,7 @@ using System.Security;
 using System.Text;
 using System.Windows.Forms;
 
-namespace NezvalPiano {
+namespace PianoNoteRecorder {
 	public static class MidiPlayer {
 		private delegate void MidiCallBack(IntPtr handle, int msg, int instance, int param1, int param2);
 		private static IntPtr Handle;

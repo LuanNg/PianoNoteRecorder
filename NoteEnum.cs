@@ -1,4 +1,4 @@
-﻿namespace NezvalPiano {
+﻿namespace PianoNoteRecorder {
 	/// <summary>
 	/// An integer enumeration that represents notes on a scale
 	/// </summary>

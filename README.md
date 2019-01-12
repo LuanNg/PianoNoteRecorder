@@ -1,4 +1,4 @@
-# nezval_piano
+# Piano Note Recorder
 Nezval Piano C# assignment
 
 Commands:

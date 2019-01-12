@@ -1,4 +1,4 @@
-﻿namespace NezvalPiano {
+﻿namespace PianoNoteRecorder {
 	/// <summary>
 	/// Contains all standard note lengths
 	/// </summary>
