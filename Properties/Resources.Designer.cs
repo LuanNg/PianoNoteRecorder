@@ -73,6 +73,16 @@ namespace PianoNoteRecorder.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Bass {
+            get {
+                object obj = ResourceManager.GetObject("Bass", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Crotchet {
             get {
                 object obj = ResourceManager.GetObject("Crotchet", resourceCulture);

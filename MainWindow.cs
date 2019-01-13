@@ -21,6 +21,7 @@ namespace PianoNoteRecorder {
 		/// </summary>
 		public MainWindow() {
 			InitializeComponent();
+			musicStaff.Keyboard = musicKeyboard;
 			beatLengthSelector.TextChanged += beatLengthSelector_ValueChanged;
 			splitContainer1.MouseUp += SplitContainer_MouseUp;
 			splitContainer2.MouseUp += SplitContainer_MouseUp;

@@ -258,7 +258,10 @@ namespace PianoNoteRecorder {
 		}
 
 		public void MarkKeyPressed(KeyEventArgs key) {
-			NoteEnum note = GetNoteFromKey(key.KeyCode);
+			MarkKeyPressed(GetNoteFromKey(key.KeyCode));
+		}
+
+		public void MarkKeyPressed(NoteEnum note) {
 			if (!(note == NoteEnum.None || pressedNotes.ContainsKey(note))) {
 				pressedNotes.Add(note, new Stopwatch());
 				MidiPlayer.PlayNote(note);
@@ -267,12 +270,16 @@ namespace PianoNoteRecorder {
 		}
 
 		public void MarkKeyReleased(KeyEventArgs key) {
-			NoteEnum note = GetNoteFromKey(key.KeyCode);
-			if (!(note == NoteEnum.None || note == lastMouseNote) && pressedNotes.ContainsKey(note)) {
+			MarkKeyReleased(GetNoteFromKey(key.KeyCode), true);
+		}
+
+		public void MarkKeyReleased(NoteEnum note, bool addToStaff) {
+			if (!(note == NoteEnum.None || note == lastMouseNote)) {
 				MidiPlayer.PlayNote(note, NoteVolume.silent);
-				Invalidate(GetNoteArea(note), false);
-				Staff.AddNote(note, pressedNotes[note].ElapsedMilliseconds);
+				if (addToStaff && pressedNotes.ContainsKey(note))
+					Staff.AddNote(note, pressedNotes[note].ElapsedMilliseconds);
 				pressedNotes.Remove(note);
+				Invalidate(GetNoteArea(note), false);
 			}
 		}
 

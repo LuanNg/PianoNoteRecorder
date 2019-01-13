@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <None Include="Resources\Bass.png" />
     <None Include="Resources\Treble.png" />
     <None Include="Resources\Sharp.png" />
     <None Include="Resources\SemiQuaverR.png" />
@@ -98,7 +99,6 @@
     <None Include="Resources\MinimR.png" />
     <None Include="Resources\minim.png" />
     <None Include="Resources\Flat.png" />
-    <None Include="Resources\DotMinim.png" />
     <None Include="Resources\CrotchetR.png" />
     <None Include="Resources\Crotchet.png" />
     <None Include="Resources\44.png" />

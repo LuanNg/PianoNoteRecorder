@@ -16,10 +16,12 @@ namespace PianoNoteRecorder {
 	[Description("A musical staff that will contain musical notes")]
 	[DisplayName(nameof(MusicStaff))]
 	public class MusicStaff : Panel {
+		private static Bitmap Treble = Resources.Treble;
+		private static Bitmap Bass = Resources.Bass;
+		private static Bitmap TimeSignature = Resources._44;
 		public event Action StartedPlaying;
 		public event Action StoppedPlaying;
-		private static Bitmap Treble = Resources.Treble;
-		private static Bitmap TimeSignature = Resources._44;
+		public MusicKeyboard Keyboard;
 		private Timer Timer;
 		/// <summary>
 		/// The length in milliseconds for a half-hemidemisemiquaver
@@ -27,6 +29,7 @@ namespace PianoNoteRecorder {
 		internal float millisPerHalfHemiDemiSemiQuaver = 467 / 32f;
 		public const int LineSpace = 10;
 		public const int BarTopDistance = 20;
+		public const int BarVerticalSpacing = LineSpace * 2;
 		public const int NoteWidth = 9;
 		private Point nextNoteLoc = new Point(60, BarTopDistance);
 		private int lastWidth;
@@ -59,10 +62,10 @@ namespace PianoNoteRecorder {
 		private void Timer_Tick(object sender, EventArgs e) {
 			if (playerNoteIndex < Controls.Count) {
 				if (playerNoteIndex != 0)
-					MidiPlayer.PlayNote(((MusicNote) Controls[playerNoteIndex - 1]).Pitch, NoteVolume.silent);
+					Keyboard.MarkKeyReleased(((MusicNote) Controls[playerNoteIndex - 1]).Pitch, false);
 				MusicNote currentNote = (MusicNote) Controls[playerNoteIndex];
 				Timer.Interval = (int) currentNote.LengthInMilliseconds;
-				MidiPlayer.PlayNote(currentNote.Pitch);
+				Keyboard.MarkKeyPressed(currentNote.Pitch);
 				playerNoteIndex++;
 			} else
 				StopPlayingNotes();
@@ -81,7 +84,7 @@ namespace PianoNoteRecorder {
 					note.BottomBarY = nextNoteLoc.Y;
 					nextNoteLoc.X += note.Width + 10;
 					if (nextNoteLoc.X > lastWidth - 10)
-						nextNoteLoc = new Point(60, nextNoteLoc.Y + BarTopDistance + LineSpace * 5);
+						nextNoteLoc = new Point(60, nextNoteLoc.Y + BarVerticalSpacing + (BarTopDistance + LineSpace * 5) * 2);
 				}
 				Invalidate(false);
 			}
@@ -92,10 +95,10 @@ namespace PianoNoteRecorder {
 		}
 
 		public void AddNote(NoteEnum pitch, NoteLength note) {
-			MusicNote noteControl = new MusicNote(this, pitch, note, nextNoteLoc);
+			MusicNote noteControl = new MusicNote(this, Keyboard, pitch, note, nextNoteLoc);
 			nextNoteLoc.X += noteControl.Width + 10;
 			if (nextNoteLoc.X > ClientSize.Width - 10) {
-				nextNoteLoc = new Point(60, nextNoteLoc.Y + BarTopDistance + LineSpace * 5);
+				nextNoteLoc = new Point(60, nextNoteLoc.Y + BarVerticalSpacing + (BarTopDistance + LineSpace * 5) * 2);
 				Invalidate(false);
 			}
 		}
@@ -111,7 +114,7 @@ namespace PianoNoteRecorder {
 			Timer.Stop();
 			int index = playerNoteIndex - 1;
 			if (index >= 0 && index < Controls.Count)
-				MidiPlayer.PlayNote(((MusicNote) Controls[index]).Pitch, NoteVolume.silent);
+				Keyboard.MarkKeyReleased(((MusicNote) Controls[index]).Pitch, false);
 			if (StoppedPlaying != null)
 				StoppedPlaying();
 		}
@@ -124,6 +127,7 @@ namespace PianoNoteRecorder {
 		}
 
 		public void ClearAllNotes() {
+			StopPlayingNotes();
 			Controls.Clear();
 			nextNoteLoc = new Point(60, BarTopDistance);
 			Invalidate(false);
@@ -147,6 +151,7 @@ namespace PianoNoteRecorder {
 			base.OnPaint(e);
 			Size clientSize = ClientSize;
 			int noteLocY = nextNoteLoc.Y - VerticalScroll.Value;
+			noteLocY += BarTopDistance + LineSpace * 4;
 			int y = BarTopDistance / 2 - VerticalScroll.Value;
 			const int barHeight = LineSpace * 5;
 			int i;
@@ -156,6 +161,11 @@ namespace PianoNoteRecorder {
 					e.Graphics.DrawLine(Pens.Black, 0, y, clientSize.Width, y);
 				}
 				y += BarTopDistance;
+				for (i = 0; i < 5; ++i) {
+					y += LineSpace;
+					e.Graphics.DrawLine(Pens.Black, 0, y, clientSize.Width, y);
+				}
+				y += BarTopDistance + BarVerticalSpacing;
 			} 
 			e.Graphics.CompositingMode = CompositingMode.SourceOver;
 			e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
@@ -164,18 +174,21 @@ namespace PianoNoteRecorder {
 			e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
 			y = BarTopDistance / 2 + LineSpace - VerticalScroll.Value;
 			int max = noteLocY + LineSpace;
+			const int bassHeight = LineSpace * 3;
 			while (y <= max) {
 				e.Graphics.DrawImage(Treble, 10, y, (barHeight * Treble.Width) / Treble.Height, barHeight);
-				e.Graphics.DrawImage(TimeSignature, 30, y, ((barHeight - LineSpace) * TimeSignature.Width) / TimeSignature.Height, barHeight - LineSpace);
+				e.Graphics.DrawImage(TimeSignature, 40, y, ((barHeight - LineSpace) * TimeSignature.Width) / TimeSignature.Height, barHeight - LineSpace);
 				y += barHeight + BarTopDistance;
+				e.Graphics.DrawImage(Bass, 10, y + LineSpace / 2, (bassHeight * Bass.Width) / Bass.Height, bassHeight);
+				e.Graphics.DrawImage(TimeSignature, 40, y, ((barHeight - LineSpace) * TimeSignature.Width) / TimeSignature.Height, barHeight - LineSpace);
+				y += barHeight + BarTopDistance + BarVerticalSpacing;
 			}
 		}
 
 		protected override void OnScroll(ScrollEventArgs se) {
 			base.OnScroll(se);
-			if (se.ScrollOrientation == ScrollOrientation.VerticalScroll) {
+			if (se.ScrollOrientation == ScrollOrientation.VerticalScroll)
 				Invalidate(false);
-			}
 		}
 
 		protected override void Dispose(bool disposing) {
