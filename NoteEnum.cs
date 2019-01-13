@@ -52,6 +52,7 @@
 		A6,
 		ASharp6,
 		B6,
-		C7
+		C7,
+		CSharp7
 	}
 }

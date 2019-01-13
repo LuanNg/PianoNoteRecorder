@@ -61,11 +61,13 @@ namespace PianoNoteRecorder {
 		}
 
 		private void ZoomTrackBar_MouseDown(object sender, MouseEventArgs e) {
+			musicKeyboard.SetDoubleBuffered(true);
 			musicKeyboard.ShowHint = true;
 		}
 
 		private void ZoomTrackBar_MouseUp(object sender, MouseEventArgs e) {
 			musicKeyboard.ShowHint = false;
+			musicKeyboard.SetDoubleBuffered(false);
 		}
 
 		/// <summary>

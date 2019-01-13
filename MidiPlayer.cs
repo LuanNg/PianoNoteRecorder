@@ -11,7 +11,7 @@ namespace PianoNoteRecorder {
 
 		static MidiPlayer() {
 			MidiOutCaps capabilities = new MidiOutCaps();
-			CheckError(midiOutGetDevCaps(0, ref capabilities, (uint) Marshal.SizeOf(capabilities)));
+			CheckError(midiOutGetDevCaps(0, ref capabilities, MidiOutCaps.Size));
 			CheckError(midiOutOpen(ref Handle, 0, null, 0, 0));
 		}
 
@@ -60,6 +60,7 @@ namespace PianoNoteRecorder {
 
 		[StructLayout(LayoutKind.Sequential)]
 		private struct MidiOutCaps {
+			public static readonly uint Size = (uint) Marshal.SizeOf(typeof(MidiOutCaps));
 			public ushort wMid;
 			public ushort wPid;
 			public uint vDriverVersion;
