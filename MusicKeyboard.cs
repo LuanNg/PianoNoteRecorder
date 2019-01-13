@@ -18,15 +18,15 @@ namespace PianoNoteRecorder {
 	public class MusicKeyboard : Panel {
 		[Flags]
 		private enum HasBlackKeys {
-			None,
+			None = 0,
 			/// <summary>
 			/// Has flat
 			/// </summary>
-			Flat,
+			Flat = 1,
 			/// <summary>
 			/// Has sharp
 			/// </summary>
-			Sharp
+			Sharp = 2
 		}
 
 		private static Dictionary<Keys, NoteEnum> NoteKeys = new Dictionary<Keys, NoteEnum> {
@@ -85,6 +85,7 @@ namespace PianoNoteRecorder {
 		private static Brush PressedKeyBrush = Brushes.Blue;
 		private static Brush TextBrush = Brushes.Red;
 		private static Pen TextOutline = Pens.White;
+		private SolidBrush BackgroundBrush;
 		private static StringFormat textFormat = new StringFormat(StringFormatFlags.NoClip) {
 			Alignment = StringAlignment.Center,
 			LineAlignment = StringAlignment.Center
@@ -184,6 +185,13 @@ namespace PianoNoteRecorder {
 			SetStyle(ControlStyles.OptimizedDoubleBuffer, doubleBuffered);
 		}
 
+		protected override void OnBackColorChanged(EventArgs e) {
+			base.OnBackColorChanged(e);
+			if (BackgroundBrush != null)
+				BackgroundBrush.Dispose();
+			BackgroundBrush = new SolidBrush(BackColor);
+		}
+
 		/// <summary>
 		/// Called when a mouse button is pressed onto the piano keyboard
 		/// </summary>
@@ -244,10 +252,6 @@ namespace PianoNoteRecorder {
 			}
 		}
 
-		public void MarkKeyPressed(KeyEventArgs key) {
-			OnKeyDown(key);
-		}
-
 		private static NoteEnum GetNoteFromKey(Keys key) {
 			NoteEnum note;
 			if (NoteKeys.TryGetValue(key, out note))
@@ -256,9 +260,8 @@ namespace PianoNoteRecorder {
 				return NoteEnum.None;
 		}
 
-		protected override void OnKeyDown(KeyEventArgs e) {
-			base.OnKeyDown(e);
-			NoteEnum note = GetNoteFromKey(e.KeyCode);
+		public void MarkKeyPressed(KeyEventArgs key) {
+			NoteEnum note = GetNoteFromKey(key.KeyCode);
 			if (!(note == NoteEnum.None || pressedNotes.Contains(note))) {
 				pressedNotes.Add(note);
 				MidiPlayer.PlayNote(note);
@@ -266,18 +269,23 @@ namespace PianoNoteRecorder {
 			}
 		}
 
-		public void MarkKeyReleased(KeyEventArgs key) {
-			OnKeyUp(key);
+		protected override void OnKeyDown(KeyEventArgs e) {
+			base.OnKeyDown(e);
+			MarkKeyPressed(e);
 		}
 
-		protected override void OnKeyUp(KeyEventArgs e) {
-			base.OnKeyUp(e);
-			NoteEnum note = GetNoteFromKey(e.KeyCode);
+		public void MarkKeyReleased(KeyEventArgs key) {
+			NoteEnum note = GetNoteFromKey(key.KeyCode);
 			if (!(note == NoteEnum.None || note == lastMouseNote) && pressedNotes.Contains(note)) {
 				pressedNotes.Remove(note);
 				MidiPlayer.PlayNote(note, NoteVolume.silent);
 				Invalidate(GetNoteArea(note), false);
 			}
+		}
+
+		protected override void OnKeyUp(KeyEventArgs e) {
+			base.OnKeyUp(e);
+			MarkKeyReleased(e);
 		}
 
 		private Rectangle GetNoteArea(NoteEnum note) {
@@ -478,10 +486,10 @@ namespace PianoNoteRecorder {
 				rect.Width -= lineThickness;
 				DrawRectangle(g, KeyOutline, rect, clipRect);
 			}
-			using (SolidBrush background = new SolidBrush(BackColor)) {
-				FillRectangle(g, background, new Rectangle(0, 0, x - 1, clientSize.Height), clipRect);
-				FillRectangle(g, background, new Rectangle(x + pianoWidth + halfLineThickness, 0, clientSize.Width - (x + pianoWidth + halfLineThickness), clientSize.Height), clipRect);
-			}
+			if (BackgroundBrush == null)
+				BackgroundBrush = new SolidBrush(BackColor);
+			FillRectangle(g, BackgroundBrush, new Rectangle(0, 0, x - 1, clientSize.Height), clipRect);
+			FillRectangle(g, BackgroundBrush, new Rectangle(x + pianoWidth + halfLineThickness, 0, clientSize.Width - (x + pianoWidth + halfLineThickness), clientSize.Height), clipRect);
 			if (showHint) {
 				e.Graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 				e.Graphics.CompositingMode = CompositingMode.SourceOver;
@@ -499,6 +507,14 @@ namespace PianoNoteRecorder {
 				}
 			}
 			base.OnPaint(e);
+		}
+
+		protected override void Dispose(bool disposing) {
+			if (BackgroundBrush != null) {
+				BackgroundBrush.Dispose();
+				BackgroundBrush = null;
+			}
+			base.Dispose(disposing);
 		}
 	}
 }
