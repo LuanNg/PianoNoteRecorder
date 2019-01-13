@@ -14,16 +14,20 @@ namespace PianoNoteRecorder {
 		private Panel controlPanel;
 		private TrackBar zoomTrackBar;
 		private Label beatLengthLabel;
+		private bool isPlaying;
 
 		/// <summary>
 		/// The constructor of the window
 		/// </summary>
 		public MainWindow() {
 			InitializeComponent();
+			beatLengthSelector.TextChanged += beatLengthSelector_ValueChanged;
 			splitContainer1.MouseUp += SplitContainer_MouseUp;
 			splitContainer2.MouseUp += SplitContainer_MouseUp;
 			zoomTrackBar.MouseDown += ZoomTrackBar_MouseDown;
 			zoomTrackBar.MouseUp += ZoomTrackBar_MouseUp;
+			musicStaff.StartedPlaying += MusicStaff_StartedPlaying;
+			musicStaff.StoppedPlaying += MusicStaff_StoppedPlaying;
 		}
 
 		/// <summary>
@@ -61,20 +65,18 @@ namespace PianoNoteRecorder {
 		}
 
 		private void ZoomTrackBar_MouseDown(object sender, MouseEventArgs e) {
-			musicKeyboard.SetDoubleBuffered(true);
 			musicKeyboard.ShowHint = true;
 		}
 
 		private void ZoomTrackBar_MouseUp(object sender, MouseEventArgs e) {
 			musicKeyboard.ShowHint = false;
-			musicKeyboard.SetDoubleBuffered(false);
 		}
 
 		/// <summary>
 		/// Called when the beat length has been changed
 		/// </summary>
 		private void beatLengthSelector_ValueChanged(object sender, EventArgs e) {
-			MusicNote.MillisPerBeat = (float) beatLengthSelector.Value;
+			musicStaff.MillisPerBeat = (float) beatLengthSelector.Value;
 		}
 
 		/// <summary>
@@ -88,13 +90,30 @@ namespace PianoNoteRecorder {
 		/// Called when the play button has been clicked
 		/// </summary>
 		private void playButton_Click(object sender, EventArgs e) {
+			if (isPlaying) {
+				isPlaying = false;
+				musicStaff.PausePlayingNotes();
+			} else {
+				isPlaying = true;
+				musicStaff.StartPlayingNotes();
+			}
+		}
+
+		private void MusicStaff_StartedPlaying() {
+			isPlaying = true;
+			playButton.Text = "Pause ❚❚";
+		}
+
+		private void MusicStaff_StoppedPlaying() {
+			isPlaying = false;
+			playButton.Text = "Play ▶";
 		}
 
 		/// <summary>
 		/// Called when the stop button has been clicked
 		/// </summary>
 		private void stopButton_Click(object sender, EventArgs e) {
-
+			musicStaff.StopPlayingNotes();
 		}
 
 		/// <summary>
@@ -115,8 +134,8 @@ namespace PianoNoteRecorder {
 		/// Called when the Clear All button has been clicked
 		/// </summary>
 		private void clearAllButton_Click(object sender, EventArgs e) {
-			if (MessageBox.Show("Are you sure you want to remove all notes from the staff?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
-			}
+			if (MessageBox.Show("Are you sure you want to remove all notes from the staff?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+				musicStaff.ClearAllNotes();
 		}
 
 		/// <summary>
@@ -146,7 +165,7 @@ namespace PianoNoteRecorder {
 			this.beatLengthSelector = new System.Windows.Forms.NumericUpDown();
 			this.saveButton = new System.Windows.Forms.Button();
 			this.loadButton = new System.Windows.Forms.Button();
-			this.musicKeyboard = new PianoNoteRecorder.MusicKeyboard();
+			this.musicKeyboard = new PianoNoteRecorder.MusicKeyboard(musicStaff);
 			this.zoomTrackBar = new System.Windows.Forms.TrackBar();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();

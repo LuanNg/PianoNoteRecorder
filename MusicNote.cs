@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using PianoNoteRecorder.Properties;
+using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -14,31 +16,42 @@ namespace PianoNoteRecorder {
 	[Description("Represents a musical note object to be placed on a musical staff")]
 	[DisplayName(nameof(MusicNote))]
 	public class MusicNote : Control {
-		/// <summary>
-		/// The length in milliseconds for a half-hemidemisemiquaver
-		/// </summary>
-		private static float millisPerHalfHemiDemiSemiQuaver = 467 / 32f;
-		/// <summary>
-		/// An integer enumeration that represents notes on a scale
-		/// </summary>
-		public NoteEnum Pitch;
+		public MusicStaff Staff;
+		private static NoteLength[] NoteLengths = (NoteLength[]) Enum.GetValues(typeof(NoteLength));
+		private static Bitmap Crotchet = Resources.Crotchet;
 		/// <summary>
 		/// An integer enumeration that represents note lengths with their relative value
 		/// </summary>
 		public NoteLength Length;
+		private int bottomBarY;
 		private Stopwatch noteLengthStopwatch = new Stopwatch();
 		private Point dragCursorPos;
+		private NoteEnum pitch;
 		private bool leftButtonDown, rightButtonDown, mouseMovedDuringLeftButton;
 
 		/// <summary>
-		/// Gets or sets the global length in milliseconds for a crotchet (single beat)
+		/// The point of reference for the bottom F note of the current bar
 		/// </summary>
-		public static float MillisPerBeat {
+		public int BottomBarY {
 			get {
-				return millisPerHalfHemiDemiSemiQuaver * 32;
+				return bottomBarY;
 			}
 			set {
-				millisPerHalfHemiDemiSemiQuaver = value * 0.03125f;
+				bottomBarY = value;
+				UpdateYLoc();
+			}
+		}
+
+		/// <summary>
+		/// An integer enumeration that represents notes on a scale
+		/// </summary>
+		public NoteEnum Pitch {
+			get {
+				return pitch;
+			}
+			set {
+				pitch = value;
+				UpdateYLoc();
 			}
 		}
 
@@ -47,7 +60,7 @@ namespace PianoNoteRecorder {
 		/// </summary>
 		public float LengthInMilliseconds {
 			get {
-				return (int) Length * millisPerHalfHemiDemiSemiQuaver;
+				return (int) Length * Staff.millisPerHalfHemiDemiSemiQuaver;
 			}
 		}
 
@@ -65,9 +78,41 @@ namespace PianoNoteRecorder {
 		/// <summary>
 		/// Initializes a new music note control
 		/// </summary>
-		public MusicNote() {
-			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.CacheText, true);
+		public MusicNote(MusicStaff parent, NoteEnum pitch, NoteLength length, Point location) {
+			Staff = parent;
+			Parent = parent;
+			bottomBarY = location.Y;
+			Bounds = new Rectangle(location.X, location.Y, (int) (MusicStaff.NoteWidth * 1.75f), MusicStaff.LineSpace * 4);
+			Pitch = pitch;
+			Length = length;
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.SupportsTransparentBackColor | ControlStyles.CacheText | ControlStyles.OptimizedDoubleBuffer, true);
 			BackColor = Color.Transparent;
+		}
+
+		private void UpdateYLoc() {
+			if (pitch == NoteEnum.None)
+				Top = bottomBarY - MusicStaff.LineSpace * 4;
+			else {
+				int noteIndex = (int) pitch - 1;
+				int note = noteIndex % 12;
+				if (note >= 5)
+					noteIndex++;
+				noteIndex += (noteIndex / 12) * 2;
+				if (note == 11)
+					noteIndex--;
+				noteIndex /= 2;
+				Top = bottomBarY - ((noteIndex - 17) * MusicStaff.LineSpace / 2);
+			}
+		}
+
+		public static NoteLength ToNoteLength(float ms) {
+			/*int length = (int) (ms / millisPerHalfHemiDemiSemiQuaver);
+			for (int i = NoteLengths.Length - 1; i >= 0; i--) {
+				if (length >= (int) NoteLengths[i])
+					return (NoteLength) length;
+			}
+			return NoteLength.None;*/
+			return NoteLength.Crotchet;
 		}
 
 		/// <summary>
@@ -116,6 +161,9 @@ namespace PianoNoteRecorder {
 				Capture = false;
 		}
 
+		/*protected override void OnPaintBackground(PaintEventArgs pevent) {
+		}*/
+
 		/// <summary>
 		/// Draws the current note
 		/// </summary>
@@ -124,6 +172,15 @@ namespace PianoNoteRecorder {
 			e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
 			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+			Size size = ClientSize;
+			if (pitch == NoteEnum.None) {
+			} else {
+				switch (Length) {
+					case NoteLength.Crotchet:
+						e.Graphics.DrawImage(Crotchet, 0, 0, (size.Width * Crotchet.Height) / size.Height, size.Height);
+						break;
+				}
+			}
 			base.OnPaint(e);
 		}
 	}
