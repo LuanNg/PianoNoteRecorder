@@ -19,6 +19,8 @@ namespace PianoNoteRecorder {
 		public MusicStaff Staff;
 		private static NoteLength[] NoteLengths = (NoteLength[]) Enum.GetValues(typeof(NoteLength));
 		private static Bitmap Crotchet = Resources.Crotchet;
+		private static Bitmap CrotchetUpsideDown = TransformImage(Resources.Crotchet, RotateFlipType.Rotate180FlipNone);
+		private static Pen Black = Pens.Black;
 		/// <summary>
 		/// An integer enumeration that represents note lengths with their relative value
 		/// </summary>
@@ -82,11 +84,16 @@ namespace PianoNoteRecorder {
 			Staff = parent;
 			Parent = parent;
 			bottomBarY = location.Y;
-			Bounds = new Rectangle(location.X, location.Y, (int) (MusicStaff.NoteWidth * 1.75f), MusicStaff.LineSpace * 4);
+			Bounds = new Rectangle(location.X, location.Y, (int) (MusicStaff.NoteWidth * 2f), MusicStaff.LineSpace * 4);
 			Pitch = pitch;
 			Length = length;
 			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.SupportsTransparentBackColor | ControlStyles.CacheText | ControlStyles.OptimizedDoubleBuffer, true);
 			BackColor = Color.Transparent;
+		}
+
+		private static Bitmap TransformImage(Bitmap image, RotateFlipType transformation) {
+			image.RotateFlip(transformation);
+			return image;
 		}
 
 		private void UpdateYLoc() {
@@ -101,7 +108,10 @@ namespace PianoNoteRecorder {
 				if (note == 11)
 					noteIndex--;
 				noteIndex /= 2;
-				Top = bottomBarY - ((noteIndex - 17) * MusicStaff.LineSpace / 2);
+				int newTop = bottomBarY - ((noteIndex - 17) * MusicStaff.LineSpace / 2);
+				if (pitch >= NoteEnum.C6)
+					newTop += MusicStaff.LineSpace * 3;
+				Top = newTop;
 			}
 		}
 
@@ -173,12 +183,34 @@ namespace PianoNoteRecorder {
 			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
 			Size size = ClientSize;
+			int width;
+			bool c5OrHigher = pitch >= NoteEnum.C6;
 			if (pitch == NoteEnum.None) {
 			} else {
 				switch (Length) {
 					case NoteLength.Crotchet:
-						e.Graphics.DrawImage(Crotchet, 0, 0, (size.Width * Crotchet.Height) / size.Height, size.Height);
+						width = (size.Width * Crotchet.Height) / size.Height;
+						e.Graphics.DrawImage(c5OrHigher ? CrotchetUpsideDown : Crotchet, (size.Width - width) / 2, 0, width, size.Height);
 						break;
+				}
+				e.Graphics.CompositingMode = CompositingMode.SourceCopy;
+				e.Graphics.CompositingQuality = CompositingQuality.HighSpeed;
+				e.Graphics.PixelOffsetMode = PixelOffsetMode.HighSpeed;
+				e.Graphics.SmoothingMode = SmoothingMode.HighSpeed;
+				if (pitch < NoteEnum.D5) {
+					int bottom = MusicStaff.LineSpace * 4 + bottomBarY - Top;
+					int y = size.Height - MusicStaff.LineSpace / 2;
+					if ((y - bottom) % MusicStaff.LineSpace != 0)
+						y -= MusicStaff.LineSpace / 2;
+					for (; y > bottom; y -= MusicStaff.LineSpace)
+						e.Graphics.DrawLine(Black, 0, y, size.Width, y);
+				} else if (pitch > NoteEnum.GSharp6) {
+					int bottom = bottomBarY - Top;
+					int y = MusicStaff.LineSpace / 2;
+					if ((bottom - y) % MusicStaff.LineSpace != 0)
+						y += MusicStaff.LineSpace / 2;
+					for (; y < bottom; y += MusicStaff.LineSpace)
+						e.Graphics.DrawLine(Black, 0, y, size.Width, y);
 				}
 			}
 			base.OnPaint(e);

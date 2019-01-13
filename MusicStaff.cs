@@ -83,9 +83,8 @@ namespace PianoNoteRecorder {
 					if (nextNoteLoc.X > lastWidth - 10)
 						nextNoteLoc = new Point(60, nextNoteLoc.Y + BarTopDistance + LineSpace * 5);
 				}
-			
+				Invalidate(false);
 			}
-			Invalidate(false);
 		}
 
 		public void AddNote(NoteEnum pitch, float ms) {
