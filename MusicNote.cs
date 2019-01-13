@@ -120,11 +120,11 @@ namespace PianoNoteRecorder {
 		/// Draws the current note
 		/// </summary>
 		protected override void OnPaint(PaintEventArgs e) {
-			base.OnPaint(e);
 			e.Graphics.CompositingMode = CompositingMode.SourceOver;
 			e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
 			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+			base.OnPaint(e);
 		}
 	}
 }
