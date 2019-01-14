@@ -30,7 +30,7 @@ namespace PianoNoteRecorder {
 		public const int LineSpace = 10;
 		public const int BarTopDistance = 20;
 		public const int BarVerticalSpacing = LineSpace * 2;
-		public const int NoteWidth = 9;
+		public const int NoteWidth = 36;
 		private Point nextNoteLoc = new Point(60, BarTopDistance);
 		private int lastWidth;
 		private int playerNoteIndex;
@@ -79,9 +79,10 @@ namespace PianoNoteRecorder {
 			if (ClientSize.Width != lastWidth) {
 				lastWidth = ClientSize.Width;
 				nextNoteLoc = new Point(60, BarTopDistance);
+				int verticalScroll = VerticalScroll.Value;
 				foreach (MusicNote note in Controls) {
-					note.Location = nextNoteLoc;
-					note.BottomBarY = nextNoteLoc.Y;
+					note.Location = new Point(nextNoteLoc.X, nextNoteLoc.Y - verticalScroll);
+					note.BottomBarY = nextNoteLoc.Y - verticalScroll;
 					UpdateNextLoc(note.Width);
 				}
 				Invalidate(false);
@@ -90,7 +91,7 @@ namespace PianoNoteRecorder {
 
 		private void UpdateNextLoc(int lastNoteWidth) {
 			nextNoteLoc.X += lastNoteWidth + 2;
-			if (nextNoteLoc.X > ClientSize.Width - 10) {
+			if (nextNoteLoc.X > ClientSize.Width - NoteWidth) {
 				nextNoteLoc = new Point(60, nextNoteLoc.Y + BarVerticalSpacing + (BarTopDistance + LineSpace * 5) * 2);
 				Invalidate(false);
 			}
@@ -101,7 +102,7 @@ namespace PianoNoteRecorder {
 		}
 
 		public void AddNote(NoteEnum pitch, NoteLength note) {
-			MusicNote noteControl = new MusicNote(this, Keyboard, pitch, note, nextNoteLoc);
+			MusicNote noteControl = new MusicNote(this, Keyboard, pitch, note, new Point(nextNoteLoc.X, nextNoteLoc.Y - VerticalScroll.Value));
 			UpdateNextLoc(noteControl.Width);
 		}
 
@@ -188,8 +189,7 @@ namespace PianoNoteRecorder {
 
 		protected override void OnScroll(ScrollEventArgs se) {
 			base.OnScroll(se);
-			if (se.ScrollOrientation == ScrollOrientation.VerticalScroll)
-				Invalidate(false);
+			Invalidate(false);
 		}
 
 		protected override void Dispose(bool disposing) {

@@ -20,7 +20,8 @@ namespace PianoNoteRecorder {
 		private static Bitmap Sharp = Resources.Sharp;
 		private static Bitmap Crotchet = Resources.Crotchet;
 		private static Bitmap CrotchetUpsideDown = TransformImage(Resources.Crotchet, RotateFlipType.Rotate180FlipNone);
-		private static Pen Black = Pens.Black;
+		private static Pen BlackPen = Pens.Black;
+		private static Brush BlackBrush = Brushes.Black;
 		/// <summary>
 		/// An integer enumeration that represents note lengths with their relative value
 		/// </summary>
@@ -88,7 +89,7 @@ namespace PianoNoteRecorder {
 			Keyboard = keyboard;
 			Parent = parent;
 			bottomBarY = location.Y;
-			Bounds = new Rectangle(location.X, location.Y, (int) (MusicStaff.NoteWidth * 4f), MusicStaff.LineSpace * 6);
+			Bounds = new Rectangle(location.X, location.Y, MusicStaff.NoteWidth, MusicStaff.LineSpace * 6);
 			Pitch = pitch;
 			Length = length;
 			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer, true);
@@ -130,7 +131,7 @@ namespace PianoNoteRecorder {
 					return (NoteLength) length;
 			}
 			return NoteLength.None;*/
-			return NoteLength.Crotchet;
+			return NoteLength.DottedCrotchet;
 		}
 
 		/// <summary>
@@ -187,6 +188,10 @@ namespace PianoNoteRecorder {
 				Capture = false;
 		}
 
+		public static bool IsDotted(NoteLength length) {
+			return (length > 0) ? ((length & (length - 1)) != 0) : true;
+		}
+
 		/*protected override void OnPaintBackground(PaintEventArgs pevent) {
 		}*/
 
@@ -216,6 +221,8 @@ namespace PianoNoteRecorder {
 				}
 				if (MusicKeyboard.IsSharp(pitch))
 					e.Graphics.DrawImage(Sharp, 0, upsideDown ? 0 : MusicStaff.LineSpace * 3, (MusicStaff.LineSpace * 3 * Sharp.Width) / Sharp.Height, MusicStaff.LineSpace * 3);
+				if (IsDotted(Length))
+					e.Graphics.FillEllipse(BlackBrush, size.Width - 5, upsideDown ? (MusicStaff.LineSpace * 9) / 8 : (MusicStaff.LineSpace * 33) / 8, 3, 3);
 				e.Graphics.CompositingMode = CompositingMode.SourceCopy;
 				e.Graphics.CompositingQuality = CompositingQuality.HighSpeed;
 				e.Graphics.PixelOffsetMode = PixelOffsetMode.HighSpeed;
@@ -228,17 +235,17 @@ namespace PianoNoteRecorder {
 					if ((y - bottom) % MusicStaff.LineSpace != 0)
 						y -= MusicStaff.LineSpace / 2;
 					for (; y > bottom; y -= MusicStaff.LineSpace)
-						e.Graphics.DrawLine(Black, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
+						e.Graphics.DrawLine(BlackPen, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
 				} else if (pitch == NoteEnum.C5 || pitch == NoteEnum.CSharp5) {
 					const int y = (MusicStaff.LineSpace * 9) / 2;
-					e.Graphics.DrawLine(Black, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
+					e.Graphics.DrawLine(BlackPen, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
 				} else if (pitch >= NoteEnum.A6) {
 					int bottom = bottomBarY - (top - MusicStaff.LineSpace);
 					int y = (MusicStaff.LineSpace * 3) / 2;
 					if ((bottom - y) % MusicStaff.LineSpace != 0)
 						y += MusicStaff.LineSpace / 2;
 					for (; y < bottom; y += MusicStaff.LineSpace)
-						e.Graphics.DrawLine(Black, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
+						e.Graphics.DrawLine(BlackPen, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
 				}
 			}
 			base.OnPaint(e);

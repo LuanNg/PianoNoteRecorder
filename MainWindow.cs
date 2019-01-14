@@ -41,11 +41,19 @@ namespace PianoNoteRecorder {
 
 		protected override void OnKeyDown(KeyEventArgs e) {
 			base.OnKeyDown(e);
+			if (e.KeyCode == Keys.ControlKey) {
+				musicKeyboard.Text = "Click on a note to delete it";
+				musicKeyboard.ShowHint = true;
+			}
 			musicKeyboard.MarkKeyPressed(e);
 		}
 
 		protected override void OnKeyUp(KeyEventArgs e) {
 			base.OnKeyUp(e);
+			if (e.KeyCode == Keys.ControlKey) {
+				musicKeyboard.ShowHint = false;
+				musicKeyboard.Text = "Top of piano can also be resized using mouse";
+			}
 			musicKeyboard.MarkKeyReleased(e);
 		}
 
