@@ -16,6 +16,7 @@ namespace PianoNoteRecorder {
 	[Description("A musical staff that will contain musical notes")]
 	[DisplayName(nameof(MusicStaff))]
 	public class MusicStaff : Panel {
+		private static NoteLength[] NoteLengths = (NoteLength[]) Enum.GetValues(typeof(NoteLength));
 		private static Bitmap Treble = Resources.Treble;
 		private static Bitmap Bass = Resources.Bass;
 		private static Bitmap TimeSignature = Resources._44;
@@ -31,7 +32,9 @@ namespace PianoNoteRecorder {
 		public const int BarTopDistance = 20;
 		public const int BarVerticalSpacing = LineSpace * 2;
 		public const int NoteWidth = 36;
-		private Point nextNoteLoc = new Point(60, BarTopDistance);
+		public const int NoteSpacing = 5;
+		public const int NoteStartX = 65;
+		private Point nextNoteLoc = new Point(NoteStartX, BarTopDistance);
 		private int lastWidth;
 		private int playerNoteIndex;
 
@@ -78,7 +81,7 @@ namespace PianoNoteRecorder {
 			base.OnClientSizeChanged(e);
 			if (ClientSize.Width != lastWidth) {
 				lastWidth = ClientSize.Width;
-				nextNoteLoc = new Point(60, BarTopDistance);
+				nextNoteLoc = new Point(NoteStartX, BarTopDistance);
 				int verticalScroll = VerticalScroll.Value;
 				foreach (MusicNote note in Controls) {
 					note.Location = new Point(nextNoteLoc.X, nextNoteLoc.Y - verticalScroll);
@@ -90,20 +93,29 @@ namespace PianoNoteRecorder {
 		}
 
 		private void UpdateNextLoc(int lastNoteWidth) {
-			nextNoteLoc.X += lastNoteWidth + 2;
+			nextNoteLoc.X += lastNoteWidth + NoteSpacing;
 			if (nextNoteLoc.X > ClientSize.Width - NoteWidth) {
-				nextNoteLoc = new Point(60, nextNoteLoc.Y + BarVerticalSpacing + (BarTopDistance + LineSpace * 5) * 2);
+				nextNoteLoc = new Point(NoteStartX, nextNoteLoc.Y + BarVerticalSpacing + (BarTopDistance + LineSpace * 5) * 2);
 				Invalidate(false);
 			}
 		}
 
 		public void AddNote(NoteEnum pitch, float ms) {
-			AddNote(pitch, MusicNote.ToNoteLength(ms));
+			AddNote(pitch, ToNoteLength(ms));
 		}
 
-		public void AddNote(NoteEnum pitch, NoteLength note) {
-			MusicNote noteControl = new MusicNote(this, Keyboard, pitch, note, new Point(nextNoteLoc.X, nextNoteLoc.Y - VerticalScroll.Value));
+		public void AddNote(NoteEnum pitch, NoteLength length) {
+			MusicNote noteControl = new MusicNote(this, Keyboard, pitch, length, new Point(nextNoteLoc.X, nextNoteLoc.Y - VerticalScroll.Value));
 			UpdateNextLoc(noteControl.Width);
+		}
+
+		public NoteLength ToNoteLength(float ms) {
+			int length = (int) (ms / millisPerHalfHemiDemiSemiQuaver);
+			for (int i = NoteLengths.Length - 1; i >= 0; i--) {
+				if (length >= (int) NoteLengths[i])
+					return NoteLengths[i];
+			}
+			return NoteLength.None;
 		}
 
 		public void StartPlayingNotes() {
@@ -132,7 +144,7 @@ namespace PianoNoteRecorder {
 		public void ClearAllNotes() {
 			StopPlayingNotes();
 			Controls.Clear();
-			nextNoteLoc = new Point(60, BarTopDistance);
+			nextNoteLoc = new Point(NoteStartX, BarTopDistance);
 			Invalidate(false);
 		}
 

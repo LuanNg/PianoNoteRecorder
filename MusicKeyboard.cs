@@ -197,7 +197,7 @@ namespace PianoNoteRecorder {
 				leftMouseDown = true;
 				lastMouseNote = GetNoteAtPoint(e.Location);
 				if (lastMouseNote != NoteEnum.None) {
-					pressedNotes.Add(lastMouseNote, new Stopwatch());
+					pressedNotes.Add(lastMouseNote, Stopwatch.StartNew());
 					MidiPlayer.PlayNote(lastMouseNote);
 					Invalidate(GetNoteArea(lastMouseNote), false);
 				}
@@ -221,7 +221,7 @@ namespace PianoNoteRecorder {
 					}
 					lastMouseNote = currentNote;
 					if (currentNote != NoteEnum.None) {
-						pressedNotes.Add(currentNote, new Stopwatch());
+						pressedNotes.Add(currentNote, Stopwatch.StartNew());
 						MidiPlayer.PlayNote(currentNote);
 					}
 					if (currentNote != NoteEnum.None)
@@ -263,7 +263,7 @@ namespace PianoNoteRecorder {
 
 		public void MarkKeyPressed(NoteEnum note) {
 			if (!(note == NoteEnum.None || pressedNotes.ContainsKey(note))) {
-				pressedNotes.Add(note, new Stopwatch());
+				pressedNotes.Add(note, Stopwatch.StartNew());
 				MidiPlayer.PlayNote(note);
 				Invalidate(GetNoteArea(note), false);
 			}

@@ -83,6 +83,16 @@ namespace PianoNoteRecorder.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Breve {
+            get {
+                object obj = ResourceManager.GetObject("Breve", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Crotchet {
             get {
                 object obj = ResourceManager.GetObject("Crotchet", resourceCulture);
@@ -103,6 +113,26 @@ namespace PianoNoteRecorder.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap DemiSemiQuaver {
+            get {
+                object obj = ResourceManager.GetObject("DemiSemiQuaver", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap DemiSemiQuaverUpsideDown {
+            get {
+                object obj = ResourceManager.GetObject("DemiSemiQuaverUpsideDown", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Flat {
             get {
                 object obj = ResourceManager.GetObject("Flat", resourceCulture);
@@ -113,9 +143,29 @@ namespace PianoNoteRecorder.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap minim {
+        internal static System.Drawing.Bitmap HemiDemiSemiQuaver {
             get {
-                object obj = ResourceManager.GetObject("minim", resourceCulture);
+                object obj = ResourceManager.GetObject("HemiDemiSemiQuaver", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap HemiDemiSemiQuaverUpsideDown {
+            get {
+                object obj = ResourceManager.GetObject("HemiDemiSemiQuaverUpsideDown", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Minim {
+            get {
+                object obj = ResourceManager.GetObject("Minim", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -163,6 +213,16 @@ namespace PianoNoteRecorder.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap QuaverUpsideDown {
+            get {
+                object obj = ResourceManager.GetObject("QuaverUpsideDown", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap SemiBreve {
             get {
                 object obj = ResourceManager.GetObject("SemiBreve", resourceCulture);
@@ -196,6 +256,16 @@ namespace PianoNoteRecorder.Properties {
         internal static System.Drawing.Bitmap SemiQuaverR {
             get {
                 object obj = ResourceManager.GetObject("SemiQuaverR", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SemiQuaverUpsideDown {
+            get {
+                object obj = ResourceManager.GetObject("SemiQuaverUpsideDown", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
