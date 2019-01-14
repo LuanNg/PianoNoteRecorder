@@ -17,6 +17,7 @@ namespace PianoNoteRecorder {
 	[DisplayName(nameof(MusicNote))]
 	public class MusicNote : Control {
 		private static NoteLength[] NoteLengths = (NoteLength[]) Enum.GetValues(typeof(NoteLength));
+		private static Bitmap Sharp = Resources.Sharp;
 		private static Bitmap Crotchet = Resources.Crotchet;
 		private static Bitmap CrotchetUpsideDown = TransformImage(Resources.Crotchet, RotateFlipType.Rotate180FlipNone);
 		private static Pen Black = Pens.Black;
@@ -55,6 +56,7 @@ namespace PianoNoteRecorder {
 			set {
 				pitch = value;
 				UpdateYLoc();
+				Invalidate(false);
 			}
 		}
 
@@ -86,7 +88,7 @@ namespace PianoNoteRecorder {
 			Keyboard = keyboard;
 			Parent = parent;
 			bottomBarY = location.Y;
-			Bounds = new Rectangle(location.X, location.Y, (int) (MusicStaff.NoteWidth * 2f), MusicStaff.LineSpace * 4);
+			Bounds = new Rectangle(location.X, location.Y, (int) (MusicStaff.NoteWidth * 4f), MusicStaff.LineSpace * 6);
 			Pitch = pitch;
 			Length = length;
 			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer, true);
@@ -100,7 +102,7 @@ namespace PianoNoteRecorder {
 
 		private void UpdateYLoc() {
 			if (pitch == NoteEnum.None)
-				Top = bottomBarY - MusicStaff.LineSpace * 4;
+				Top = bottomBarY - MusicStaff.LineSpace * 5;
 			else {
 				int noteIndex = (int) pitch - 1;
 				int note = noteIndex % 12;
@@ -117,7 +119,7 @@ namespace PianoNoteRecorder {
 					newTop += MusicStaff.BarTopDistance - MusicStaff.LineSpace;
 				else if (pitch <= NoteEnum.B4)
 					newTop += MusicStaff.LineSpace * 2 + MusicStaff.BarTopDistance;
-				Top = newTop;
+				Top = newTop - MusicStaff.LineSpace;
 			}
 		}
 
@@ -197,42 +199,46 @@ namespace PianoNoteRecorder {
 			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
 			Size size = ClientSize;
-			int width;
+			size.Height -= MusicStaff.LineSpace * 2;
+			int width = 9;
+			int centerLeft = (size.Width - width) / 2;
 			bool upsideDown = pitch >= NoteEnum.C6 || (pitch <= NoteEnum.B4 && pitch >= NoteEnum.D4);
 			if (pitch == NoteEnum.None) {
 
 			} else {
 				switch (Length) {
 					case NoteLength.Crotchet:
-						width = (size.Width * Crotchet.Height) / size.Height;
-						e.Graphics.DrawImage(upsideDown ? CrotchetUpsideDown : Crotchet, (size.Width - width) / 2, 0, width, size.Height);
+					case NoteLength.DottedCrotchet:
+						width = (size.Height * Crotchet.Width) / Crotchet.Height;
+						centerLeft = (size.Width - width) / 2;
+						e.Graphics.DrawImage(upsideDown ? CrotchetUpsideDown : Crotchet, centerLeft, MusicStaff.LineSpace, width, size.Height);
 						break;
 				}
+				if (MusicKeyboard.IsSharp(pitch))
+					e.Graphics.DrawImage(Sharp, 0, upsideDown ? 0 : MusicStaff.LineSpace * 3, (MusicStaff.LineSpace * 3 * Sharp.Width) / Sharp.Height, MusicStaff.LineSpace * 3);
 				e.Graphics.CompositingMode = CompositingMode.SourceCopy;
 				e.Graphics.CompositingQuality = CompositingQuality.HighSpeed;
 				e.Graphics.PixelOffsetMode = PixelOffsetMode.HighSpeed;
 				e.Graphics.SmoothingMode = SmoothingMode.HighSpeed;
+				const int lineProtrusion = 3;
+				int top = Top;
 				if (pitch <= NoteEnum.E3) {
-					int bottom = MusicStaff.LineSpace * 4 + bottomBarY + MusicStaff.BarTopDistance - Top;
-					int y = size.Height - MusicStaff.LineSpace / 2;
+					int bottom = MusicStaff.LineSpace * 3 + bottomBarY + MusicStaff.BarTopDistance - top;
+					int y = size.Height + MusicStaff.LineSpace / 2;
 					if ((y - bottom) % MusicStaff.LineSpace != 0)
 						y -= MusicStaff.LineSpace / 2;
 					for (; y > bottom; y -= MusicStaff.LineSpace)
-						e.Graphics.DrawLine(Black, 0, y, size.Width, y);
+						e.Graphics.DrawLine(Black, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
 				} else if (pitch == NoteEnum.C5 || pitch == NoteEnum.CSharp5) {
-					int bottom = MusicStaff.LineSpace * 4 + bottomBarY - Top;
-					int y = size.Height - MusicStaff.LineSpace / 2;
-					if ((y - bottom) % MusicStaff.LineSpace != 0)
-						y -= MusicStaff.LineSpace / 2;
-					for (; y > bottom; y -= MusicStaff.LineSpace)
-						e.Graphics.DrawLine(Black, 0, y, size.Width, y);
+					const int y = (MusicStaff.LineSpace * 9) / 2;
+					e.Graphics.DrawLine(Black, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
 				} else if (pitch >= NoteEnum.A6) {
-					int bottom = bottomBarY - Top;
-					int y = MusicStaff.LineSpace / 2;
+					int bottom = bottomBarY - (top - MusicStaff.LineSpace);
+					int y = (MusicStaff.LineSpace * 3) / 2;
 					if ((bottom - y) % MusicStaff.LineSpace != 0)
 						y += MusicStaff.LineSpace / 2;
 					for (; y < bottom; y += MusicStaff.LineSpace)
-						e.Graphics.DrawLine(Black, 0, y, size.Width, y);
+						e.Graphics.DrawLine(Black, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
 				}
 			}
 			base.OnPaint(e);

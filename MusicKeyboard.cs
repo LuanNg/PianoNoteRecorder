@@ -333,7 +333,7 @@ namespace PianoNoteRecorder {
 			return flags;
 		}
 
-		private static bool IsSharp(NoteEnum note) {
+		public static bool IsSharp(NoteEnum note) {
 			if (note == NoteEnum.None)
 				return false;
 			int tone = ((int) note - 1) % 12;
