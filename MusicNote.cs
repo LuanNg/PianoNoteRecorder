@@ -25,7 +25,6 @@ namespace PianoNoteRecorder {
 		private static Bitmap CrotchetR = Resources.CrotchetR;
 		private static Bitmap MinimR = Resources.MinimR;
 		private static Bitmap SemiBreveR = Resources.SemiBreveR;
-		private static Bitmap BreveR = Resources.BreveR;
 		private static Bitmap HemiDemiSemiQuaver = Resources.HemiDemiSemiQuaver;
 		private static Bitmap HemiDemiSemiQuaverUpsideDown = Resources.HemiDemiSemiQuaverUpsideDown;
 		private static Bitmap DemiSemiQuaver = Resources.DemiSemiQuaver;
@@ -40,8 +39,6 @@ namespace PianoNoteRecorder {
 		private static Bitmap MinimUpsideDown = TransformImage(Resources.Minim, RotateFlipType.Rotate180FlipNone);
 		private static Bitmap SemiBreve = Resources.SemiBreve;
 		private static Bitmap SemiBreveUpsideDown = TransformImage(Resources.SemiBreve, RotateFlipType.Rotate180FlipNone);
-		private static Bitmap Breve = Resources.Breve;
-		private static Bitmap BreveUpsideDown = TransformImage(Resources.Breve, RotateFlipType.Rotate180FlipNone);
 
 		private static Bitmap SharpHighlight = Highlight(Sharp);
 		private static Bitmap HemiDemiSemiQuaverRHighlight = Highlight(HemiDemiSemiQuaverR);
@@ -51,7 +48,6 @@ namespace PianoNoteRecorder {
 		private static Bitmap CrotchetRHighlight = Highlight(CrotchetR);
 		private static Bitmap MinimRHighlight = Highlight(MinimR);
 		private static Bitmap SemiBreveRHighlight = Highlight(SemiBreveR);
-		private static Bitmap BreveRHighlight = Highlight(BreveR);
 		private static Bitmap HemiDemiSemiQuaverHighlight = Highlight(HemiDemiSemiQuaver);
 		private static Bitmap HemiDemiSemiQuaverUpsideDownHighlight = Highlight(HemiDemiSemiQuaverUpsideDown);
 		private static Bitmap DemiSemiQuaverHighlight = Highlight(DemiSemiQuaver);
@@ -66,11 +62,10 @@ namespace PianoNoteRecorder {
 		private static Bitmap MinimUpsideDownHighlight = Highlight(MinimUpsideDown);
 		private static Bitmap SemiBreveHighlight = Highlight(SemiBreve);
 		private static Bitmap SemiBreveUpsideDownHighlight = Highlight(SemiBreveUpsideDown);
-		private static Bitmap BreveHighlight = Highlight(Breve);
-		private static Bitmap BreveUpsideDownHighlight = Highlight(BreveUpsideDown);
 		private static Pen BlackPen = Pens.Black;
 		private static Brush BlackBrush = Brushes.Black;
 		private static Brush HighlightedBrush = Brushes.Blue;
+		internal int verticalScrollAtInit;
 		private MusicStaff Staff;
 		private MusicKeyboard Keyboard;
 		private int bottomBarY;
@@ -103,6 +98,8 @@ namespace PianoNoteRecorder {
 				if (value < NoteLength.HemiDemiSemiQuaver)
 					value = NoteLength.HemiDemiSemiQuaver;
 				length = value;
+				Invalidate(false);
+				Staff.Invalidate(false);
 			}
 		}
 
@@ -265,9 +262,8 @@ namespace PianoNoteRecorder {
 				leftButtonDown = false;
 				Keyboard.MarkKeyReleased(pitch, false);
 			} else if (e.Button == MouseButtons.Right) {
-				length = Staff.ToNoteLength(noteLengthStopwatch.ElapsedMilliseconds);
+				Length = Staff.ToNoteLength(noteLengthStopwatch.ElapsedMilliseconds);
 				noteLengthStopwatch.Reset();
-				Invalidate(false);
 			}
 			if (!(leftButtonDown || rightButtonDown))
 				Capture = false;
@@ -337,10 +333,6 @@ namespace PianoNoteRecorder {
 					case NoteLength.DottedSemiBreve:
 						DrawCenteredImage(g, highlighted ? SemiBreveRHighlight : SemiBreveR);
 						break;
-					case NoteLength.Breve:
-					case NoteLength.DottedBreve:
-						DrawCenteredImage(g, highlighted ? BreveRHighlight : BreveR);
-						break;
 				}
 			} else {
 				int centerLeft = 0;
@@ -372,10 +364,6 @@ namespace PianoNoteRecorder {
 					case NoteLength.SemiBreve:
 					case NoteLength.DottedSemiBreve:
 						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? SemiBreveUpsideDownHighlight : SemiBreveUpsideDown) : (highlighted ? SemiBreveHighlight : SemiBreve));
-						break;
-					case NoteLength.Breve:
-					case NoteLength.DottedBreve:
-						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted? BreveUpsideDownHighlight : BreveUpsideDown) : (highlighted ? BreveHighlight : Breve));
 						break;
 				}
 				if (MusicKeyboard.IsSharp(pitch))

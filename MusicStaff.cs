@@ -1,9 +1,9 @@
 ﻿using PianoNoteRecorder.Properties;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows.Forms;
 
 namespace PianoNoteRecorder {
@@ -20,6 +20,7 @@ namespace PianoNoteRecorder {
 		private static Bitmap Treble = Resources.Treble;
 		private static Bitmap Bass = Resources.Bass;
 		private static Bitmap TimeSignature = Resources._44;
+		private static Pen ScorePen = Pens.Black;
 		public event Action StartedPlaying;
 		public event Action StoppedPlaying;
 		public MusicKeyboard Keyboard;
@@ -32,7 +33,7 @@ namespace PianoNoteRecorder {
 		public const int BarTopDistance = 20;
 		public const int BarVerticalSpacing = LineSpace * 2;
 		public const int NoteWidth = 36;
-		public const int NoteSpacing = 5;
+		public const int NoteSpacing = 10;
 		public const int NoteStartX = 65;
 		private Point nextNoteLoc = new Point(NoteStartX, BarTopDistance);
 		private int lastWidth;
@@ -96,6 +97,7 @@ namespace PianoNoteRecorder {
 				foreach (MusicNote note in Controls) {
 					note.Location = new Point(nextNoteLoc.X, nextNoteLoc.Y - verticalScroll);
 					note.BottomBarY = nextNoteLoc.Y - verticalScroll;
+					note.verticalScrollAtInit = verticalScroll;
 					UpdateNextLoc(note.Width);
 				}
 				Invalidate(false);
@@ -117,8 +119,29 @@ namespace PianoNoteRecorder {
 		public void AddNote(NoteEnum pitch, NoteLength length) {
 			if (pitch == NoteEnum.None && length < NoteLength.HemiDemiSemiQuaver)
 				return;
-			MusicNote noteControl = new MusicNote(this, Keyboard, pitch, length, new Point(nextNoteLoc.X, nextNoteLoc.Y - VerticalScroll.Value));
+			int verticalScroll = VerticalScroll.Value;
+			MusicNote noteControl = new MusicNote(this, Keyboard, pitch, length, new Point(nextNoteLoc.X, nextNoteLoc.Y - verticalScroll));
+			noteControl.verticalScrollAtInit = verticalScroll;
 			UpdateNextLoc(noteControl.Width);
+		}
+
+		public void SaveAllNotes(string path) {
+			using (StreamWriter writer = new StreamWriter(path)) {
+				foreach (MusicNote note in Controls)
+					writer.WriteLine(note.Pitch + "," + note.Length);
+			}
+		}
+
+		public void LoadAllNotes(string path) {
+			using (StreamReader reader = new StreamReader(path)) {
+				string line;
+				string[] sections;
+				while (!reader.EndOfStream) {
+					line = reader.ReadLine();
+					sections = line.Split(',');
+					AddNote((NoteEnum) Enum.Parse(typeof(NoteEnum), sections[0], true), (NoteLength) Enum.Parse(typeof(NoteLength), sections[1], true));
+				}
+			}
 		}
 
 		public NoteLength ToNoteLength(float ms) {
@@ -160,6 +183,8 @@ namespace PianoNoteRecorder {
 			StopPlayingNotes();
 			Controls.Clear();
 			nextNoteLoc = new Point(NoteStartX, BarTopDistance);
+			VerticalScroll.Value = 0;
+			PerformLayout();
 			Invalidate(false);
 		}
 
@@ -180,28 +205,41 @@ namespace PianoNoteRecorder {
 			e.Graphics.Clear(BackColor);
 			base.OnPaint(e);
 			Size clientSize = ClientSize;
-			int noteLocY = nextNoteLoc.Y - VerticalScroll.Value;
+			int verticalScroll = VerticalScroll.Value;
+			int noteLocY = nextNoteLoc.Y - verticalScroll;
 			noteLocY += BarTopDistance + LineSpace * 4;
-			int y = BarTopDistance / 2 - VerticalScroll.Value;
+			int y = BarTopDistance / 2 - verticalScroll;
 			const int barHeight = LineSpace * 5;
 			int i;
 			bool addSpacing = false;
 			while (y <= noteLocY) {
 				for (i = 0; i < 5; ++i) {
 					y += LineSpace;
-					e.Graphics.DrawLine(Pens.Black, 0, y, clientSize.Width, y);
+					e.Graphics.DrawLine(ScorePen, 0, y, clientSize.Width, y);
 				}
 				y += BarTopDistance;
 				if (addSpacing)
 					y += BarVerticalSpacing;
 				addSpacing = !addSpacing;
-			} 
+			}
+			int bar = 0;
+			int oldValue = 0, temp, x;
+			foreach (MusicNote note in Controls) {
+				bar += (int) note.Length;
+				temp = bar / (int) NoteLength.SemiBreve;
+				if (temp != oldValue) {
+					oldValue = temp;
+					x = note.Left + NoteWidth + NoteSpacing / 2;
+					y = (note.BottomBarY + note.verticalScrollAtInit) - verticalScroll;
+					e.Graphics.DrawLine(ScorePen, x, y, x, y + LineSpace * 8 + BarTopDistance + LineSpace);
+				}
+			}
 			e.Graphics.CompositingMode = CompositingMode.SourceOver;
 			e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
 			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
 			e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-			y = BarTopDistance / 2 + LineSpace - VerticalScroll.Value;
+			y = BarTopDistance / 2 + LineSpace - verticalScroll;
 			int max = noteLocY + LineSpace;
 			const int bassHeight = LineSpace * 3;
 			while (y <= max) {

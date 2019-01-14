@@ -17,8 +17,6 @@
 		Minim = 64,
 		DottedMinim = 96,
 		SemiBreve = 128,
-		DottedSemiBreve = 192,
-		Breve = 256,
-		DottedBreve = 384
+		DottedSemiBreve = 192
 	}
 }

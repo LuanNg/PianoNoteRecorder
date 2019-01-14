@@ -87,7 +87,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
-    <None Include="Resources\BreveR.png" />
     <None Include="Resources\HemiDemiSemiQuaverR.png" />
     <None Include="Resources\DemiSemiQuaverR.png" />
     <None Include="Resources\HemiDemiSemiQuaverUpsideDown.png" />
@@ -96,7 +95,6 @@
     <None Include="Resources\DemiSemiQuaver.png" />
     <None Include="Resources\SemiQuaverUpsideDown.png" />
     <None Include="Resources\QuaverUpsideDown.png" />
-    <None Include="Resources\Breve.png" />
     <None Include="Resources\Bass.png" />
     <None Include="Resources\Treble.png" />
     <None Include="Resources\Sharp.png" />

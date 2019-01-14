@@ -129,14 +129,38 @@ namespace PianoNoteRecorder {
 		/// Called when the save button has been clicked
 		/// </summary>
 		private void saveButton_Click(object sender, EventArgs e) {
-
+			using (SaveFileDialog dialog = new SaveFileDialog()) {
+				dialog.Title = "Choose where to save the notes...";
+				dialog.FileName = "Notes.csv";
+				dialog.DefaultExt = ".csv";
+				dialog.Filter = "CSV File|*.csv|All Files|*.*";
+				dialog.OverwritePrompt = true;
+				if (dialog.ShowDialog() == DialogResult.OK) {
+					try {
+						musicStaff.SaveAllNotes(dialog.FileName);
+					} catch (Exception ex) {
+						MessageBox.Show("Error while saving file: " + ex.Message);
+					}
+				}
+			}
 		}
 
 		/// <summary>
 		/// Called when the load button has been clicked
 		/// </summary>
 		private void loadButton_Click(object sender, EventArgs e) {
-
+			using (OpenFileDialog dialog = new OpenFileDialog()) {
+				dialog.Title = "Choose the file containing the notes...";
+				dialog.DefaultExt = ".csv";
+				dialog.Filter = "CSV File|*.csv|All Files|*.*";
+				if (dialog.ShowDialog() == DialogResult.OK) {
+					try {
+						musicStaff.LoadAllNotes(dialog.FileName);
+					} catch (Exception ex) {
+						MessageBox.Show("Error while loading file: " + ex.Message);
+					}
+				}
+			}
 		}
 
 		/// <summary>
