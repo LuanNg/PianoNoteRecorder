@@ -37,6 +37,7 @@
     <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
     <NoWarn>IDE0017, IDE1006, CC0001, CC0003, CC0004, CC0008, CC0013, CC0014, CC0015, CC0017, CC0026, CC0031, CC0037, CC0048, CC0052, CC0060, CC0065, CC0072, CC0074, CC0090, CC0097, CC0105, CC0120</NoWarn>
     <DocumentationFile>bin\Release\PianoNoteRecorder.xml</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>icon.ico</ApplicationIcon>
@@ -86,6 +87,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <None Include="Resources\BreveR.png" />
+    <None Include="Resources\HemiDemiSemiQuaverR.png" />
+    <None Include="Resources\DemiSemiQuaverR.png" />
     <None Include="Resources\HemiDemiSemiQuaverUpsideDown.png" />
     <None Include="Resources\HemiDemiSemiQuaver.png" />
     <None Include="Resources\DemiSemiQuaverUpsideDown.png" />

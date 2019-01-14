@@ -38,6 +38,12 @@ namespace PianoNoteRecorder {
 		private int lastWidth;
 		private int playerNoteIndex;
 
+		public bool IsPlaying {
+			get {
+				return Timer.Enabled;
+			}
+		}
+
 		/// <summary>
 		/// Gets or sets the global length in milliseconds for a crotchet (single beat)
 		/// </summary>
@@ -64,11 +70,15 @@ namespace PianoNoteRecorder {
 
 		private void Timer_Tick(object sender, EventArgs e) {
 			if (playerNoteIndex < Controls.Count) {
-				if (playerNoteIndex != 0)
-					Keyboard.MarkKeyReleased(((MusicNote) Controls[playerNoteIndex - 1]).Pitch, false);
+				if (playerNoteIndex != 0) {
+					MusicNote oldNote = (MusicNote) Controls[playerNoteIndex - 1];
+					Keyboard.MarkKeyReleased(oldNote.Pitch, false);
+					oldNote.Highlighted = false;
+				}
 				MusicNote currentNote = (MusicNote) Controls[playerNoteIndex];
 				Timer.Interval = (int) currentNote.LengthInMilliseconds;
-				Keyboard.MarkKeyPressed(currentNote.Pitch);
+				Keyboard.MarkKeyPressed(currentNote.Pitch, false);
+				currentNote.Highlighted = true;
 				playerNoteIndex++;
 			} else
 				StopPlayingNotes();
@@ -105,6 +115,8 @@ namespace PianoNoteRecorder {
 		}
 
 		public void AddNote(NoteEnum pitch, NoteLength length) {
+			if (pitch == NoteEnum.None && length < NoteLength.HemiDemiSemiQuaver)
+				return;
 			MusicNote noteControl = new MusicNote(this, Keyboard, pitch, length, new Point(nextNoteLoc.X, nextNoteLoc.Y - VerticalScroll.Value));
 			UpdateNextLoc(noteControl.Width);
 		}
@@ -125,11 +137,14 @@ namespace PianoNoteRecorder {
 				StartedPlaying();
 		}
 
-		public void PausePlayingNotes() {
+		public void PausePlayingNotes(bool leaveHighlighted = false) {
 			Timer.Stop();
 			int index = playerNoteIndex - 1;
-			if (index >= 0 && index < Controls.Count)
-				Keyboard.MarkKeyReleased(((MusicNote) Controls[index]).Pitch, false);
+			if (index >= 0 && index < Controls.Count) {
+				MusicNote current = (MusicNote) Controls[index];
+				Keyboard.MarkKeyReleased(current.Pitch, false);
+				current.Highlighted = leaveHighlighted;
+			}
 			if (StoppedPlaying != null)
 				StoppedPlaying();
 		}

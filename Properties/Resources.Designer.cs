@@ -93,6 +93,16 @@ namespace PianoNoteRecorder.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap BreveR {
+            get {
+                object obj = ResourceManager.GetObject("BreveR", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Crotchet {
             get {
                 object obj = ResourceManager.GetObject("Crotchet", resourceCulture);
@@ -123,6 +133,16 @@ namespace PianoNoteRecorder.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap DemiSemiQuaverR {
+            get {
+                object obj = ResourceManager.GetObject("DemiSemiQuaverR", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap DemiSemiQuaverUpsideDown {
             get {
                 object obj = ResourceManager.GetObject("DemiSemiQuaverUpsideDown", resourceCulture);
@@ -146,6 +166,16 @@ namespace PianoNoteRecorder.Properties {
         internal static System.Drawing.Bitmap HemiDemiSemiQuaver {
             get {
                 object obj = ResourceManager.GetObject("HemiDemiSemiQuaver", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap HemiDemiSemiQuaverR {
+            get {
+                object obj = ResourceManager.GetObject("HemiDemiSemiQuaverR", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

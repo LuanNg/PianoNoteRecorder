@@ -101,7 +101,7 @@ namespace PianoNoteRecorder {
 		private void playButton_Click(object sender, EventArgs e) {
 			if (isPlaying) {
 				isPlaying = false;
-				musicStaff.PausePlayingNotes();
+				musicStaff.PausePlayingNotes(true);
 			} else {
 				isPlaying = true;
 				musicStaff.StartPlayingNotes();

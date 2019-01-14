@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace PianoNoteRecorder {
@@ -17,6 +18,14 @@ namespace PianoNoteRecorder {
 	[DisplayName(nameof(MusicNote))]
 	public class MusicNote : Control {
 		private static Bitmap Sharp = Resources.Sharp;
+		private static Bitmap HemiDemiSemiQuaverR = Resources.HemiDemiSemiQuaverR;
+		private static Bitmap DemiSemiQuaverR = Resources.DemiSemiQuaverR;
+		private static Bitmap SemiQuaverR = Resources.SemiQuaverR;
+		private static Bitmap QuaverR = Resources.QuaverR;
+		private static Bitmap CrotchetR = Resources.CrotchetR;
+		private static Bitmap MinimR = Resources.MinimR;
+		private static Bitmap SemiBreveR = Resources.SemiBreveR;
+		private static Bitmap BreveR = Resources.BreveR;
 		private static Bitmap HemiDemiSemiQuaver = Resources.HemiDemiSemiQuaver;
 		private static Bitmap HemiDemiSemiQuaverUpsideDown = Resources.HemiDemiSemiQuaverUpsideDown;
 		private static Bitmap DemiSemiQuaver = Resources.DemiSemiQuaver;
@@ -33,8 +42,35 @@ namespace PianoNoteRecorder {
 		private static Bitmap SemiBreveUpsideDown = TransformImage(Resources.SemiBreve, RotateFlipType.Rotate180FlipNone);
 		private static Bitmap Breve = Resources.Breve;
 		private static Bitmap BreveUpsideDown = TransformImage(Resources.Breve, RotateFlipType.Rotate180FlipNone);
+
+		private static Bitmap SharpHighlight = Highlight(Sharp);
+		private static Bitmap HemiDemiSemiQuaverRHighlight = Highlight(HemiDemiSemiQuaverR);
+		private static Bitmap DemiSemiQuaverRHighlight = Highlight(DemiSemiQuaverR);
+		private static Bitmap SemiQuaverRHighlight = Highlight(SemiQuaverR);
+		private static Bitmap QuaverRHighlight = Highlight(QuaverR);
+		private static Bitmap CrotchetRHighlight = Highlight(CrotchetR);
+		private static Bitmap MinimRHighlight = Highlight(MinimR);
+		private static Bitmap SemiBreveRHighlight = Highlight(SemiBreveR);
+		private static Bitmap BreveRHighlight = Highlight(BreveR);
+		private static Bitmap HemiDemiSemiQuaverHighlight = Highlight(HemiDemiSemiQuaver);
+		private static Bitmap HemiDemiSemiQuaverUpsideDownHighlight = Highlight(HemiDemiSemiQuaverUpsideDown);
+		private static Bitmap DemiSemiQuaverHighlight = Highlight(DemiSemiQuaver);
+		private static Bitmap DemiSemiQuaverUpsideDownHighlight = Highlight(DemiSemiQuaverUpsideDown);
+		private static Bitmap SemiQuaverHighlight = Highlight(SemiQuaver);
+		private static Bitmap SemiQuaverUpsideDownHighlight = Highlight(SemiQuaverUpsideDown);
+		private static Bitmap QuaverHighlight = Highlight(Quaver);
+		private static Bitmap QuaverUpsideDownHighlight = Highlight(QuaverUpsideDown);
+		private static Bitmap CrotchetHighlight = Highlight(Crotchet);
+		private static Bitmap CrotchetUpsideDownHighlight = Highlight(CrotchetUpsideDown);
+		private static Bitmap MinimHighlight = Highlight(Minim);
+		private static Bitmap MinimUpsideDownHighlight = Highlight(MinimUpsideDown);
+		private static Bitmap SemiBreveHighlight = Highlight(SemiBreve);
+		private static Bitmap SemiBreveUpsideDownHighlight = Highlight(SemiBreveUpsideDown);
+		private static Bitmap BreveHighlight = Highlight(Breve);
+		private static Bitmap BreveUpsideDownHighlight = Highlight(BreveUpsideDown);
 		private static Pen BlackPen = Pens.Black;
 		private static Brush BlackBrush = Brushes.Black;
+		private static Brush HighlightedBrush = Brushes.Blue;
 		private MusicStaff Staff;
 		private MusicKeyboard Keyboard;
 		private int bottomBarY;
@@ -42,7 +78,19 @@ namespace PianoNoteRecorder {
 		private int oldCursorY;
 		private NoteEnum oldPitch, pitch;
 		private NoteLength length;
-		private bool leftButtonDown, rightButtonDown;
+		private bool leftButtonDown, rightButtonDown, highlighted;
+
+		public bool Highlighted {
+			get {
+				return highlighted;
+			}
+			set {
+				if (value == highlighted)
+					return;
+				highlighted = value;
+				Invalidate(false);
+			}
+		}
 
 		/// <summary>
 		/// An integer enumeration that represents note lengths with their relative value
@@ -125,9 +173,31 @@ namespace PianoNoteRecorder {
 			return image;
 		}
 
+		private static Bitmap Highlight(Bitmap image) {
+			Bitmap newImage = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
+			BitmapData data = image.LockBits(new Rectangle(Point.Empty, image.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+			BitmapData newData = newImage.LockBits(new Rectangle(Point.Empty, newImage.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+			unsafe
+			{
+				byte* ptr = ((byte*) data.Scan0) + 3;
+				byte* newPtr = (byte*) newData.Scan0;
+				int count = newImage.Width * newImage.Height;
+				for (int i = 0; i < count; ++i) {
+					*newPtr = 255;
+					newPtr += 3;
+					*newPtr = *ptr;
+					newPtr++;
+					ptr += 4;
+				}
+			}
+			image.UnlockBits(data);
+			newImage.UnlockBits(newData);
+			return newImage;
+		}
+
 		private void UpdateYLoc() {
 			if (pitch == NoteEnum.None)
-				Top = bottomBarY - MusicStaff.LineSpace * 5;
+				Top = bottomBarY - MusicStaff.LineSpace;
 			else {
 				int noteIndex = (int) pitch - 1;
 				int note = noteIndex % 12;
@@ -162,12 +232,13 @@ namespace PianoNoteRecorder {
 				oldCursorY = Cursor.Position.Y;
 				leftButtonDown = true;
 				oldPitch = pitch;
-				Keyboard.MarkKeyPressed(pitch);
+				Keyboard.MarkKeyPressed(pitch, false);
 			} else if (e.Button == MouseButtons.Right) {
 				noteLengthStopwatch.Start();
 				rightButtonDown = true;
 			}
 			Capture = true;
+			Highlighted = true;
 		}
 
 		/// <summary>
@@ -177,10 +248,10 @@ namespace PianoNoteRecorder {
 			base.OnMouseMove(e);
 			if (leftButtonDown) {
 				NoteEnum newPitch = oldPitch + ((oldCursorY - Cursor.Position.Y) * 2) / MusicStaff.LineSpace;
-				if (newPitch > NoteEnum.None && newPitch <= NoteEnum.CSharp7 && newPitch != pitch) {
+				if (newPitch >= NoteEnum.None && newPitch <= NoteEnum.CSharp7 && newPitch != pitch) {
 					Keyboard.MarkKeyReleased(pitch, false);
 					Pitch = newPitch;
-					Keyboard.MarkKeyPressed(pitch);
+					Keyboard.MarkKeyPressed(pitch, false);
 				}
 			}
 		}
@@ -200,6 +271,7 @@ namespace PianoNoteRecorder {
 			}
 			if (!(leftButtonDown || rightButtonDown))
 				Capture = false;
+			Highlighted = false;
 		}
 
 		public static bool IsDotted(NoteLength length) {
@@ -209,13 +281,18 @@ namespace PianoNoteRecorder {
 		//protected override void OnPaintBackground(PaintEventArgs pevent) {
 		//}
 
-		private int DrawNoteImage(Graphics g, Bitmap image, int offset = 0) {
+		private int DrawNoteImage(Graphics g, Bitmap image, int offsetX = 0, int offsetY = 0) {
 			Size size = ClientSize;
 			size.Height -= MusicStaff.LineSpace * 2;
 			int width = (size.Height * image.Width) / image.Height;
 			int centerLeft = (size.Width - width) / 2;
-			g.DrawImage(image, centerLeft + offset, MusicStaff.LineSpace, width, size.Height);
+			g.DrawImage(image, centerLeft + offsetX, MusicStaff.LineSpace + offsetY, width, size.Height);
 			return centerLeft;
+		}
+
+		private void DrawCenteredImage(Graphics g, Bitmap image, int offsetX = 0, int offsetY = 0) {
+			Size size = ClientSize;
+			g.DrawImage(image, (size.Width - image.Width) / 2 + offsetX, (size.Height - image.Height) / 2 + offsetY, image.Width, image.Height);
 		}
 
 		/// <summary>
@@ -229,49 +306,80 @@ namespace PianoNoteRecorder {
 			g.SmoothingMode = SmoothingMode.HighQuality;
 			Size size = ClientSize;
 			size.Height -= MusicStaff.LineSpace * 2;
-			int centerLeft = 0;
 			bool upsideDown = pitch >= NoteEnum.C6 || (pitch <= NoteEnum.B4 && pitch >= NoteEnum.D4);
-			if (pitch == NoteEnum.None) {
-
-			} else {
+			if (pitch == NoteEnum.None) { //rest
 				switch (length) {
 					case NoteLength.HemiDemiSemiQuaver:
 					case NoteLength.DottedHemiDemiSemiQuaver:
-						centerLeft = upsideDown ? DrawNoteImage(g, HemiDemiSemiQuaverUpsideDown) : DrawNoteImage(g, HemiDemiSemiQuaver, 3);
+						DrawCenteredImage(g, highlighted ? HemiDemiSemiQuaverRHighlight : HemiDemiSemiQuaverR);
 						break;
 					case NoteLength.DemiSemiQuaver:
 					case NoteLength.DottedDemiSemiQuaver:
-						centerLeft = upsideDown ? DrawNoteImage(g, DemiSemiQuaverUpsideDown) : DrawNoteImage(g, DemiSemiQuaver, 3);
+						DrawCenteredImage(g, highlighted ? DemiSemiQuaverRHighlight : DemiSemiQuaverR);
 						break;
 					case NoteLength.SemiQuaver:
 					case NoteLength.DottedSemiQuaver:
-						centerLeft = upsideDown ? DrawNoteImage(g, SemiQuaverUpsideDown) : DrawNoteImage(g, SemiQuaver, 3);
+						DrawCenteredImage(g, highlighted ? SemiQuaverRHighlight : SemiQuaverR);
 						break;
 					case NoteLength.Quaver:
 					case NoteLength.DottedQuaver:
-						centerLeft = upsideDown ? DrawNoteImage(g, QuaverUpsideDown) : DrawNoteImage(g, Quaver, 3);
+						DrawCenteredImage(g, highlighted ? QuaverRHighlight : QuaverR);
 						break;
 					case NoteLength.Crotchet:
 					case NoteLength.DottedCrotchet:
-						centerLeft = DrawNoteImage(g, upsideDown ? CrotchetUpsideDown : Crotchet);
+						DrawCenteredImage(g, highlighted ? CrotchetRHighlight : CrotchetR);
 						break;
 					case NoteLength.Minim:
 					case NoteLength.DottedMinim:
-						centerLeft = DrawNoteImage(g, upsideDown ? MinimUpsideDown : Minim);
+						DrawCenteredImage(g, highlighted ? MinimRHighlight : MinimR);
 						break;
 					case NoteLength.SemiBreve:
 					case NoteLength.DottedSemiBreve:
-						centerLeft = DrawNoteImage(g, upsideDown ? SemiBreveUpsideDown : SemiBreve);
+						DrawCenteredImage(g, highlighted ? SemiBreveRHighlight : SemiBreveR);
 						break;
 					case NoteLength.Breve:
 					case NoteLength.DottedBreve:
-						centerLeft = DrawNoteImage(g, upsideDown ? BreveUpsideDown : Breve);
+						DrawCenteredImage(g, highlighted ? BreveRHighlight : BreveR);
+						break;
+				}
+			} else {
+				int centerLeft = 0;
+				switch (length) {
+					case NoteLength.HemiDemiSemiQuaver:
+					case NoteLength.DottedHemiDemiSemiQuaver:
+						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? HemiDemiSemiQuaverUpsideDownHighlight : HemiDemiSemiQuaverUpsideDown) : DrawNoteImage(g, highlighted ? HemiDemiSemiQuaverHighlight : HemiDemiSemiQuaver, 3);
+						break;
+					case NoteLength.DemiSemiQuaver:
+					case NoteLength.DottedDemiSemiQuaver:
+						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? DemiSemiQuaverUpsideDownHighlight : DemiSemiQuaverUpsideDown) : DrawNoteImage(g, highlighted ? DemiSemiQuaverHighlight : DemiSemiQuaver, 3);
+						break;
+					case NoteLength.SemiQuaver:
+					case NoteLength.DottedSemiQuaver:
+						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? SemiQuaverUpsideDownHighlight : SemiQuaverUpsideDown) : DrawNoteImage(g, highlighted ? SemiQuaverHighlight : SemiQuaver, 3);
+						break;
+					case NoteLength.Quaver:
+					case NoteLength.DottedQuaver:
+						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? QuaverUpsideDownHighlight : QuaverUpsideDown) : DrawNoteImage(g, highlighted ? QuaverHighlight : Quaver, 3);
+						break;
+					case NoteLength.Crotchet:
+					case NoteLength.DottedCrotchet:
+						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? CrotchetUpsideDownHighlight : CrotchetUpsideDown) : (highlighted ? CrotchetHighlight : Crotchet));
+						break;
+					case NoteLength.Minim:
+					case NoteLength.DottedMinim:
+						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? MinimUpsideDownHighlight : MinimUpsideDown) : (highlighted ? MinimHighlight : Minim));
+						break;
+					case NoteLength.SemiBreve:
+					case NoteLength.DottedSemiBreve:
+						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? SemiBreveUpsideDownHighlight : SemiBreveUpsideDown) : (highlighted ? SemiBreveHighlight : SemiBreve));
+						break;
+					case NoteLength.Breve:
+					case NoteLength.DottedBreve:
+						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted? BreveUpsideDownHighlight : BreveUpsideDown) : (highlighted ? BreveHighlight : Breve));
 						break;
 				}
 				if (MusicKeyboard.IsSharp(pitch))
-					e.Graphics.DrawImage(Sharp, 0, upsideDown ? MusicStaff.LineSpace / 3: (MusicStaff.LineSpace * 13) / 4, (MusicStaff.LineSpace * 5 * Sharp.Width) / (Sharp.Height * 2), (MusicStaff.LineSpace * 5) / 2);
-				if (IsDotted(length))
-					e.Graphics.FillEllipse(BlackBrush, size.Width - 3, upsideDown ? (MusicStaff.LineSpace * 9) / 8 : (MusicStaff.LineSpace * 33) / 8, 3, 3);
+					e.Graphics.DrawImage(highlighted ? SharpHighlight : Sharp, 0, upsideDown ? MusicStaff.LineSpace / 3: (MusicStaff.LineSpace * 13) / 4, (MusicStaff.LineSpace * 5 * Sharp.Width) / (Sharp.Height * 2), (MusicStaff.LineSpace * 5) / 2);
 				e.Graphics.CompositingMode = CompositingMode.SourceCopy;
 				e.Graphics.CompositingQuality = CompositingQuality.HighSpeed;
 				e.Graphics.PixelOffsetMode = PixelOffsetMode.HighSpeed;
@@ -297,6 +405,8 @@ namespace PianoNoteRecorder {
 						e.Graphics.DrawLine(BlackPen, centerLeft - lineProtrusion, y, size.Width + lineProtrusion - centerLeft, y);
 				}
 			}
+			if (IsDotted(length))
+				e.Graphics.FillEllipse(highlighted ? HighlightedBrush : BlackBrush, size.Width - 3, pitch == NoteEnum.None ? ((size.Height + MusicStaff.LineSpace - 3) / 2) : (upsideDown ? (MusicStaff.LineSpace * 9) / 8 : (MusicStaff.LineSpace * 33) / 8), 3, 3);
 			base.OnPaint(e);
 		}
 	}

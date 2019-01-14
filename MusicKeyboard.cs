@@ -88,6 +88,7 @@ namespace PianoNoteRecorder {
 			LineAlignment = StringAlignment.Center
 		};
 		private Dictionary<NoteEnum, Stopwatch> pressedNotes = new Dictionary<NoteEnum, Stopwatch>();
+		private Stopwatch SilenceStopwatch = new Stopwatch();
 		private MusicStaff Staff;
 		private SolidBrush BackgroundBrush;
 		private int widthScale = 100;
@@ -197,6 +198,8 @@ namespace PianoNoteRecorder {
 				leftMouseDown = true;
 				lastMouseNote = GetNoteAtPoint(e.Location);
 				if (lastMouseNote != NoteEnum.None) {
+					Staff.AddNote(NoteEnum.None, SilenceStopwatch.ElapsedMilliseconds);
+					SilenceStopwatch.Restart();
 					pressedNotes.Add(lastMouseNote, Stopwatch.StartNew());
 					MidiPlayer.PlayNote(lastMouseNote);
 					Invalidate(GetNoteArea(lastMouseNote), false);
@@ -247,6 +250,7 @@ namespace PianoNoteRecorder {
 					lastMouseNote = NoteEnum.None;
 				}
 			}
+			SilenceStopwatch.Restart();
 		}
 
 		private static NoteEnum GetNoteFromKey(Keys key) {
@@ -258,11 +262,14 @@ namespace PianoNoteRecorder {
 		}
 
 		public void MarkKeyPressed(KeyEventArgs key) {
-			MarkKeyPressed(GetNoteFromKey(key.KeyCode));
+			MarkKeyPressed(GetNoteFromKey(key.KeyCode), true);
 		}
 
-		public void MarkKeyPressed(NoteEnum note) {
+		public void MarkKeyPressed(NoteEnum note, bool addToStaff) {
 			if (!(note == NoteEnum.None || pressedNotes.ContainsKey(note))) {
+				if (addToStaff)
+					Staff.AddNote(NoteEnum.None, SilenceStopwatch.ElapsedMilliseconds);
+				SilenceStopwatch.Restart();
 				pressedNotes.Add(note, Stopwatch.StartNew());
 				MidiPlayer.PlayNote(note);
 				Invalidate(GetNoteArea(note), false);
@@ -281,6 +288,7 @@ namespace PianoNoteRecorder {
 				pressedNotes.Remove(note);
 				Invalidate(GetNoteArea(note), false);
 			}
+			SilenceStopwatch.Restart();
 		}
 
 		private Rectangle GetNoteArea(NoteEnum note) {

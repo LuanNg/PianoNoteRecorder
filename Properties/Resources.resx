@@ -187,4 +187,13 @@
   <data name="HemiDemiSemiQuaverUpsideDown" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\HemiDemiSemiQuaverUpsideDown.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="BreveR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BreveR.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="DemiSemiQuaverR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DemiSemiQuaverR.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="HemiDemiSemiQuaverR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\HemiDemiSemiQuaverR.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>
