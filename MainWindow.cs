@@ -85,6 +85,7 @@ namespace PianoNoteRecorder {
 		/// Called when the beat length has been changed
 		/// </summary>
 		private void beatLengthSelector_ValueChanged(object sender, EventArgs e) {
+            if ((float)beatLengthSelector.Value >= 1f)
 			musicStaff.MillisPerBeat = (float) beatLengthSelector.Value;
 		}
 
@@ -114,7 +115,7 @@ namespace PianoNoteRecorder {
 		}
 
 		private void MusicStaff_StoppedPlaying() {
-			isPlaying = false;
+            isPlaying = false;
 			playButton.Text = "Play ▶";
 		}
 

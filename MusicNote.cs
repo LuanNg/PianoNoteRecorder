@@ -174,8 +174,8 @@ namespace PianoNoteRecorder {
 			Bitmap newImage = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
 			BitmapData data = image.LockBits(new Rectangle(Point.Empty, image.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
 			BitmapData newData = newImage.LockBits(new Rectangle(Point.Empty, newImage.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-			unsafe
-			{
+
+            unsafe{
 				byte* ptr = ((byte*) data.Scan0) + 3;
 				byte* newPtr = (byte*) newData.Scan0;
 				int count = newImage.Width * newImage.Height;
@@ -330,7 +330,6 @@ namespace PianoNoteRecorder {
 						DrawCenteredImage(g, highlighted ? MinimRHighlight : MinimR);
 						break;
 					case NoteLength.SemiBreve:
-					case NoteLength.DottedSemiBreve:
 						DrawCenteredImage(g, highlighted ? SemiBreveRHighlight : SemiBreveR);
 						break;
 				}
@@ -362,7 +361,6 @@ namespace PianoNoteRecorder {
 						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? MinimUpsideDownHighlight : MinimUpsideDown) : (highlighted ? MinimHighlight : Minim));
 						break;
 					case NoteLength.SemiBreve:
-					case NoteLength.DottedSemiBreve:
 						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? SemiBreveUpsideDownHighlight : SemiBreveUpsideDown) : (highlighted ? SemiBreveHighlight : SemiBreve));
 						break;
 				}

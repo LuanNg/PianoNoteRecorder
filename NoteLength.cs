@@ -16,7 +16,6 @@
 		DottedCrotchet = 48,
 		Minim = 64,
 		DottedMinim = 96,
-		SemiBreve = 128,
-		DottedSemiBreve = 192
+		SemiBreve = 128
 	}
 }

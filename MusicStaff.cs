@@ -77,7 +77,7 @@ namespace PianoNoteRecorder {
 					oldNote.Highlighted = false;
 				}
 				MusicNote currentNote = (MusicNote) Controls[playerNoteIndex];
-				Timer.Interval = (int) currentNote.LengthInMilliseconds;
+				Timer.Interval = Math.Max((int) currentNote.LengthInMilliseconds, 1);
 				Keyboard.MarkKeyPressed(currentNote.Pitch, false);
 				currentNote.Highlighted = true;
 				playerNoteIndex++;
