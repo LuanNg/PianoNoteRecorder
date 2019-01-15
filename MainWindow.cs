@@ -22,6 +22,7 @@ namespace PianoNoteRecorder {
 		public MainWindow() {
 			InitializeComponent();
 			musicStaff.Keyboard = musicKeyboard;
+			musicKeyboard.Staff = musicStaff;
 			beatLengthSelector.TextChanged += beatLengthSelector_ValueChanged;
 			splitContainer1.MouseUp += SplitContainer_MouseUp;
 			splitContainer2.MouseUp += SplitContainer_MouseUp;
@@ -29,6 +30,7 @@ namespace PianoNoteRecorder {
 			zoomTrackBar.MouseUp += ZoomTrackBar_MouseUp;
 			musicStaff.StartedPlaying += MusicStaff_StartedPlaying;
 			musicStaff.StoppedPlaying += MusicStaff_StoppedPlaying;
+			beatLengthSelector.Value = MusicStaff.DefaultBeatLengthInMs;
 		}
 
 		/// <summary>
@@ -130,17 +132,21 @@ namespace PianoNoteRecorder {
 		/// Called when the save button has been clicked
 		/// </summary>
 		private void saveButton_Click(object sender, EventArgs e) {
-			using (SaveFileDialog dialog = new SaveFileDialog()) {
-				dialog.Title = "Choose where to save the notes...";
-				dialog.FileName = "Notes.csv";
-				dialog.DefaultExt = ".csv";
-				dialog.Filter = "CSV File|*.csv|All Files|*.*";
-				dialog.OverwritePrompt = true;
-				if (dialog.ShowDialog() == DialogResult.OK) {
-					try {
-						musicStaff.SaveAllNotes(dialog.FileName);
-					} catch (Exception ex) {
-						MessageBox.Show("Error while saving file: " + ex.Message);
+			if (musicStaff.Notes.Count == 0)
+				MessageBox.Show("There are no notes to save", "Empty", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			else {
+				using (SaveFileDialog dialog = new SaveFileDialog()) {
+					dialog.Title = "Choose where to save the notes...";
+					dialog.FileName = "Notes.csv";
+					dialog.DefaultExt = ".csv";
+					dialog.Filter = "CSV File|*.csv|All Files|*.*";
+					dialog.OverwritePrompt = true;
+					if (dialog.ShowDialog() == DialogResult.OK) {
+						try {
+							musicStaff.SaveAllNotes(dialog.FileName);
+						} catch (Exception ex) {
+							MessageBox.Show("Error while saving file: " + ex.Message);
+						}
 					}
 				}
 			}
@@ -199,7 +205,7 @@ namespace PianoNoteRecorder {
 			this.beatLengthSelector = new System.Windows.Forms.NumericUpDown();
 			this.saveButton = new System.Windows.Forms.Button();
 			this.loadButton = new System.Windows.Forms.Button();
-			this.musicKeyboard = new PianoNoteRecorder.MusicKeyboard(musicStaff);
+			this.musicKeyboard = new PianoNoteRecorder.MusicKeyboard();
 			this.zoomTrackBar = new System.Windows.Forms.TrackBar();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
@@ -262,12 +268,11 @@ namespace PianoNoteRecorder {
 			// 
 			// musicStaff
 			// 
-			this.musicStaff.AutoScroll = true;
-			this.musicStaff.AutoScrollMinSize = new System.Drawing.Size(594, 1000);
 			this.musicStaff.BackColor = System.Drawing.Color.White;
 			this.musicStaff.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.musicStaff.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.musicStaff.Location = new System.Drawing.Point(0, 0);
+			this.musicStaff.MillisPerBeat = 400F;
 			this.musicStaff.Name = "musicStaff";
 			this.musicStaff.Size = new System.Drawing.Size(632, 285);
 			this.musicStaff.TabIndex = 0;

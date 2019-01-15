@@ -1,12 +1,15 @@
 # Piano Note Recorder
-Nezval Piano C# assignment
 
-Commands:
+A simple piano player and recorder written in C#.
 
-git clone https://github.com/mathusummut/nezval_piano.git        #clones the repository
+You can use the mouse or keyboard to play and manipulated notes
 
-git pull                                                         #pull updates
+You can:
 
-git add * :/                                                     #loads all file changes since last pull or commit
-git commit -m "Changed A, B, C"                                  #commits the changes under the specified message
-git push
+- Use the keyboard to play notes and chords
+- Drag notes along the scale
+- Hold right-click on a note to change its time value
+- Hold Ctrl key to delete notes
+- Resize and scale piano keyboard
+- Play notes back and adjust playback speed
+- Load and save notes

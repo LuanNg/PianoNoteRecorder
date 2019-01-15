@@ -59,9 +59,7 @@
     <Compile Include="MusicKeyboard.cs">
       <SubType>CommonControls</SubType>
     </Compile>
-    <Compile Include="MusicNote.cs">
-      <SubType>CommonControls</SubType>
-    </Compile>
+    <Compile Include="MusicNote.cs" />
     <Compile Include="MusicStaff.cs">
       <SubType>CommonControls</SubType>
     </Compile>

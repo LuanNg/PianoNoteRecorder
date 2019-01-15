@@ -31,6 +31,18 @@ namespace PianoNoteRecorder {
 		}
 
 		private static Dictionary<Keys, NoteEnum> NoteKeys = new Dictionary<Keys, NoteEnum> {
+			{ Keys.D1, NoteEnum.C3 },
+			{ Keys.D2, NoteEnum.CSharp3 },
+			{ Keys.D3, NoteEnum.D3 },
+			{ Keys.D4, NoteEnum.DSharp3 },
+			{ Keys.D5, NoteEnum.E3 },
+			{ Keys.D6, NoteEnum.F3 },
+			{ Keys.D7, NoteEnum.FSharp3 },
+			{ Keys.D8, NoteEnum.G3 },
+			{ Keys.D9, NoteEnum.GSharp3 },
+			{ Keys.D0, NoteEnum.A3 },
+			{ Keys.OemMinus, NoteEnum.ASharp3 },
+			{ Keys.Oemplus, NoteEnum.B3 },
 			{ Keys.Q, NoteEnum.C4 },
 			{ Keys.W, NoteEnum.CSharp4 },
 			{ Keys.E, NoteEnum.D4 },
@@ -89,7 +101,7 @@ namespace PianoNoteRecorder {
 		};
 		private Dictionary<NoteEnum, Stopwatch> pressedNotes = new Dictionary<NoteEnum, Stopwatch>();
 		private Stopwatch SilenceStopwatch = new Stopwatch();
-		private MusicStaff Staff;
+		internal MusicStaff Staff;
 		private SolidBrush BackgroundBrush;
 		private int widthScale = 100;
 		private Point LastCursorLocation;
@@ -175,9 +187,8 @@ namespace PianoNoteRecorder {
 		/// <summary>
 		/// Initializes the musical keyboard
 		/// </summary>
-		public MusicKeyboard(MusicStaff staff) {
-			Staff = staff;
-			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+		public MusicKeyboard() {
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.CacheText, true);
 			Text = "Top of piano can also be resized using mouse";
 		}
 
@@ -220,7 +231,7 @@ namespace PianoNoteRecorder {
 					if (oldNote != NoteEnum.None) {
 						Staff.AddNote(oldNote, pressedNotes[oldNote].ElapsedMilliseconds);
 						pressedNotes.Remove(oldNote);
-						MidiPlayer.PlayNote(oldNote, NoteVolume.silent);
+						MidiPlayer.StopNote(oldNote);
 					}
 					lastMouseNote = currentNote;
 					if (currentNote != NoteEnum.None) {
@@ -243,7 +254,7 @@ namespace PianoNoteRecorder {
 			if (e.Button == MouseButtons.Left) {
 				leftMouseDown = false;
 				if (lastMouseNote != NoteEnum.None) {
-					MidiPlayer.PlayNote(lastMouseNote, NoteVolume.silent);
+					MidiPlayer.StopNote(lastMouseNote);
 					Invalidate(GetNoteArea(lastMouseNote), false);
 					Staff.AddNote(lastMouseNote, pressedNotes[lastMouseNote].ElapsedMilliseconds);
 					pressedNotes.Remove(lastMouseNote);
@@ -282,7 +293,7 @@ namespace PianoNoteRecorder {
 
 		public void MarkKeyReleased(NoteEnum note, bool addToStaff) {
 			if (!(note == NoteEnum.None || note == lastMouseNote)) {
-				MidiPlayer.PlayNote(note, NoteVolume.silent);
+				MidiPlayer.StopNote(note);
 				if (addToStaff && pressedNotes.ContainsKey(note))
 					Staff.AddNote(note, pressedNotes[note].ElapsedMilliseconds);
 				pressedNotes.Remove(note);
@@ -401,12 +412,6 @@ namespace PianoNoteRecorder {
 				g.FillRectangle(brush, area);
 		}
 
-		private static void DrawRectangle(Graphics g, Pen pen, Rectangle area, Rectangle invalidatedRect) {
-			area.Intersect(invalidatedRect);
-			if (area.Width > 0 && area.Height > 0)
-				g.DrawRectangle(pen, area);
-		}
-
 		/// <summary>
 		/// Called when the background is being drawn
 		/// </summary>
@@ -434,13 +439,11 @@ namespace PianoNoteRecorder {
 			const int halfLineThickness = lineThickness / 2;
 			int height = clientSize.Height - lineThickness;
 			Rectangle clipRect = e.ClipRectangle;
-			clipRect.Inflate(1, 1);
 			//fill piano background
 			FillRectangle(g, WhiteKeyBrush, new Rectangle(x, halfLineThickness, pianoWidth, height), clipRect);
 			int i, keyStart;
 			//draw white keys
 			List<Rectangle> pressedWhite = new List<Rectangle>();
-			List<Rectangle> pressedBlack = new List<Rectangle>();
 			Rectangle currentRect;
 			NoteEnum currentNote;
 			for (i = 0; i < WhiteKeyCount; ++i) {
@@ -453,8 +456,9 @@ namespace PianoNoteRecorder {
 				}
 				if (i == MiddleCPos)
 					FillRectangle(g, MiddleCBrush, currentRect, clipRect);
-				DrawRectangle(g, KeyOutline, currentRect, clipRect);
+				g.DrawRectangle(KeyOutline, currentRect);
 			}
+			List<Rectangle> pressedBlack = new List<Rectangle>();
 			int temp;
 			int blackKeyHeight = (height * 4) / 7;
 			//draw black keys
@@ -487,7 +491,7 @@ namespace PianoNoteRecorder {
 				rect.X += halfLineThickness;
 				rect.Y -= halfLineThickness;
 				rect.Width -= lineThickness;
-				DrawRectangle(g, KeyOutline, rect, clipRect);
+				g.DrawRectangle(KeyOutline, rect);
 			}
 			if (BackgroundBrush == null)
 				BackgroundBrush = new SolidBrush(BackColor);

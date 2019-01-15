@@ -5,6 +5,9 @@ using System.Text;
 using System.Windows.Forms;
 
 namespace PianoNoteRecorder {
+	/// <summary>
+	/// Handles MIDI note playback
+	/// </summary>
 	public static class MidiPlayer {
 		private delegate void MidiCallBack(IntPtr handle, int msg, int instance, int param1, int param2);
 		private static IntPtr Handle;
@@ -26,16 +29,30 @@ namespace PianoNoteRecorder {
 			return reply.ToString();
 		}
 
-		private static void MciMidiTest() {
-			var res = Mci("open \"M:\\anger.mid\" alias music");
+		private static void MciMidiTest(string path) {
+			var res = Mci("open " + path + " alias music");
 			res = Mci("play music");
-			Console.ReadLine();
 			res = Mci("close crooner");
 		}*/
 
+		/// <summary>
+		/// Plays the specified note, or changes its volume if it is already playing
+		/// </summary>
+		/// <param name="note">The note pitch to play</param>
+		/// <param name="volume">The volume to play the specified note at</param>
 		public static void PlayNote(NoteEnum note, NoteVolume volume = NoteVolume.ffff) {
+			if (note == NoteEnum.None)
+				return;
 			const byte command = 0x90; //play piano note
 			CheckError(midiOutShortMsg(Handle, (((byte) volume) << 16) + (((byte) note + 35) << 8) + command)); //12 notes per octave
+		}
+
+		/// <summary>
+		/// Stops playback of the specified note
+		/// </summary>
+		/// <param name="note">The note to whose playback to stop</param>
+		public static void StopNote(NoteEnum note) {
+			PlayNote(note, NoteVolume.silent);
 		}
 
 		[DllImport("winmm.dll")]
