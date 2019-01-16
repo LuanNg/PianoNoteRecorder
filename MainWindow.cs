@@ -14,7 +14,6 @@ namespace PianoNoteRecorder {
 		private Panel controlPanel;
 		private TrackBar zoomTrackBar;
 		private Label beatLengthLabel;
-		private bool isPlaying;
 
 		/// <summary>
 		/// The constructor of the window
@@ -41,22 +40,30 @@ namespace PianoNoteRecorder {
 			playButton.Focus();
 		}
 
+		/// <summary>
+		/// Called when a key is pressed
+		/// </summary>
+		/// <param name="e">The key that was pressed</param>
 		protected override void OnKeyDown(KeyEventArgs e) {
 			base.OnKeyDown(e);
 			if (e.KeyCode == Keys.ControlKey) {
 				musicKeyboard.Text = "Click on a note to delete it";
 				musicKeyboard.ShowHint = true;
 			}
-			musicKeyboard.MarkKeyPressed(e);
+			musicKeyboard.MarkKeyPressed(e.KeyCode);
 		}
 
+		/// <summary>
+		/// Called when a key is released
+		/// </summary>
+		/// <param name="e">The key that was released</param>
 		protected override void OnKeyUp(KeyEventArgs e) {
 			base.OnKeyUp(e);
 			if (e.KeyCode == Keys.ControlKey) {
 				musicKeyboard.ShowHint = false;
 				musicKeyboard.Text = "Top of piano can also be resized using mouse";
 			}
-			musicKeyboard.MarkKeyReleased(e);
+			musicKeyboard.MarkKeyReleased(e.KeyCode);
 		}
 
 		/// <summary>
@@ -75,10 +82,16 @@ namespace PianoNoteRecorder {
 			playButton.Focus();
 		}
 
+		/// <summary>
+		/// Called when a mouse button is pressed on the zoom trackbar
+		/// </summary>
 		private void ZoomTrackBar_MouseDown(object sender, MouseEventArgs e) {
 			musicKeyboard.ShowHint = true;
 		}
 
+		/// <summary>
+		/// Called when a mouse button is released on the zoom trackbar
+		/// </summary>
 		private void ZoomTrackBar_MouseUp(object sender, MouseEventArgs e) {
 			musicKeyboard.ShowHint = false;
 		}
@@ -102,22 +115,23 @@ namespace PianoNoteRecorder {
 		/// Called when the play button has been clicked
 		/// </summary>
 		private void playButton_Click(object sender, EventArgs e) {
-			if (isPlaying) {
-				isPlaying = false;
+			if (musicStaff.IsPlaying)
 				musicStaff.PausePlayingNotes(true);
-			} else {
-				isPlaying = true;
+			else
 				musicStaff.StartPlayingNotes();
-			}
 		}
 
+		/// <summary>
+		/// Called when the sequential note playback has been initiated
+		/// </summary>
 		private void MusicStaff_StartedPlaying() {
-			isPlaying = true;
 			playButton.Text = "Pause ❚❚";
 		}
-
+		
+		/// <summary>
+		/// Called when sequential note playback has been stopped
+		/// </summary>
 		private void MusicStaff_StoppedPlaying() {
-            isPlaying = false;
 			playButton.Text = "Play ▶";
 		}
 
@@ -132,7 +146,7 @@ namespace PianoNoteRecorder {
 		/// Called when the save button has been clicked
 		/// </summary>
 		private void saveButton_Click(object sender, EventArgs e) {
-			if (musicStaff.Notes.Count == 0)
+			if (musicStaff.NoteCount == 0)
 				MessageBox.Show("There are no notes to save", "Empty", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			else {
 				using (SaveFileDialog dialog = new SaveFileDialog()) {
@@ -196,7 +210,6 @@ namespace PianoNoteRecorder {
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.splitContainer2 = new System.Windows.Forms.SplitContainer();
-			this.musicStaff = new PianoNoteRecorder.MusicStaff();
 			this.controlPanel = new System.Windows.Forms.Panel();
 			this.beatLengthLabel = new System.Windows.Forms.Label();
 			this.clearAllButton = new System.Windows.Forms.Button();
@@ -205,8 +218,9 @@ namespace PianoNoteRecorder {
 			this.beatLengthSelector = new System.Windows.Forms.NumericUpDown();
 			this.saveButton = new System.Windows.Forms.Button();
 			this.loadButton = new System.Windows.Forms.Button();
-			this.musicKeyboard = new PianoNoteRecorder.MusicKeyboard();
 			this.zoomTrackBar = new System.Windows.Forms.TrackBar();
+			this.musicStaff = new PianoNoteRecorder.MusicStaff();
+			this.musicKeyboard = new PianoNoteRecorder.MusicKeyboard();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
 			this.splitContainer1.Panel2.SuspendLayout();
@@ -240,7 +254,7 @@ namespace PianoNoteRecorder {
 			this.splitContainer1.Size = new System.Drawing.Size(632, 454);
 			this.splitContainer1.SplitterDistance = 321;
 			this.splitContainer1.SplitterWidth = 7;
-			this.splitContainer1.TabIndex = 2;
+			this.splitContainer1.TabIndex = 10;
 			// 
 			// splitContainer2
 			// 
@@ -265,17 +279,7 @@ namespace PianoNoteRecorder {
 			this.splitContainer2.SplitterDistance = 285;
 			this.splitContainer2.SplitterWidth = 1;
 			this.splitContainer2.TabIndex = 1;
-			// 
-			// musicStaff
-			// 
-			this.musicStaff.BackColor = System.Drawing.Color.White;
-			this.musicStaff.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			this.musicStaff.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.musicStaff.Location = new System.Drawing.Point(0, 0);
-			this.musicStaff.MillisPerBeat = 400F;
-			this.musicStaff.Name = "musicStaff";
-			this.musicStaff.Size = new System.Drawing.Size(632, 285);
-			this.musicStaff.TabIndex = 0;
+			this.splitContainer2.TabStop = false;
 			// 
 			// controlPanel
 			// 
@@ -308,7 +312,7 @@ namespace PianoNoteRecorder {
 			this.clearAllButton.Location = new System.Drawing.Point(495, 0);
 			this.clearAllButton.Name = "clearAllButton";
 			this.clearAllButton.Size = new System.Drawing.Size(95, 31);
-			this.clearAllButton.TabIndex = 6;
+			this.clearAllButton.TabIndex = 4;
 			this.clearAllButton.Text = "Clear All ×";
 			this.clearAllButton.UseVisualStyleBackColor = true;
 			this.clearAllButton.Click += new System.EventHandler(this.clearAllButton_Click);
@@ -351,7 +355,7 @@ namespace PianoNoteRecorder {
             0});
 			this.beatLengthSelector.Name = "beatLengthSelector";
 			this.beatLengthSelector.Size = new System.Drawing.Size(60, 21);
-			this.beatLengthSelector.TabIndex = 4;
+			this.beatLengthSelector.TabIndex = 5;
 			this.beatLengthSelector.Value = new decimal(new int[] {
             467,
             0,
@@ -381,6 +385,35 @@ namespace PianoNoteRecorder {
 			this.loadButton.UseVisualStyleBackColor = true;
 			this.loadButton.Click += new System.EventHandler(this.loadButton_Click);
 			// 
+			// zoomTrackBar
+			// 
+			this.zoomTrackBar.AutoSize = false;
+			this.zoomTrackBar.BackColor = System.Drawing.SystemColors.Control;
+			this.zoomTrackBar.Dock = System.Windows.Forms.DockStyle.Left;
+			this.zoomTrackBar.Location = new System.Drawing.Point(0, 0);
+			this.zoomTrackBar.Maximum = 100;
+			this.zoomTrackBar.Minimum = 33;
+			this.zoomTrackBar.Name = "zoomTrackBar";
+			this.zoomTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
+			this.zoomTrackBar.Size = new System.Drawing.Size(25, 126);
+			this.zoomTrackBar.TabIndex = 6;
+			this.zoomTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+			this.zoomTrackBar.Value = 100;
+			this.zoomTrackBar.Scroll += new System.EventHandler(this.zoomTrackBar_Scroll);
+			// 
+			// musicStaff
+			// 
+			this.musicStaff.AutoScroll = true;
+			this.musicStaff.AutoScrollMinSize = new System.Drawing.Size(1, 340);
+			this.musicStaff.BackColor = System.Drawing.Color.White;
+			this.musicStaff.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.musicStaff.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.musicStaff.Location = new System.Drawing.Point(0, 0);
+			this.musicStaff.MillisPerBeat = 400F;
+			this.musicStaff.Name = "musicStaff";
+			this.musicStaff.Size = new System.Drawing.Size(632, 285);
+			this.musicStaff.TabIndex = 100;
+			// 
 			// musicKeyboard
 			// 
 			this.musicKeyboard.BackColor = System.Drawing.SystemColors.Control;
@@ -394,22 +427,6 @@ namespace PianoNoteRecorder {
 			this.musicKeyboard.TabIndex = 1;
 			this.musicKeyboard.Text = "Top of piano can also be resized using mouse";
 			this.musicKeyboard.WidthScalePercentage = 100;
-			// 
-			// zoomTrackBar
-			// 
-			this.zoomTrackBar.AutoSize = false;
-			this.zoomTrackBar.BackColor = System.Drawing.SystemColors.Control;
-			this.zoomTrackBar.Dock = System.Windows.Forms.DockStyle.Left;
-			this.zoomTrackBar.Location = new System.Drawing.Point(0, 0);
-			this.zoomTrackBar.Maximum = 100;
-			this.zoomTrackBar.Minimum = 33;
-			this.zoomTrackBar.Name = "zoomTrackBar";
-			this.zoomTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
-			this.zoomTrackBar.Size = new System.Drawing.Size(25, 126);
-			this.zoomTrackBar.TabIndex = 0;
-			this.zoomTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-			this.zoomTrackBar.Value = 100;
-			this.zoomTrackBar.Scroll += new System.EventHandler(this.zoomTrackBar_Scroll);
 			// 
 			// MainWindow
 			// 

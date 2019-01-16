@@ -1,8 +1,6 @@
-﻿using PianoNoteRecorder.Properties;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace PianoNoteRecorder {
@@ -10,63 +8,30 @@ namespace PianoNoteRecorder {
 	/// Represents a musical note object to be placed on a musical staff
 	/// </summary>
 	public class MusicNote {
-		private static Bitmap Sharp = Resources.Sharp;
-		private static Bitmap HemiDemiSemiQuaverR = Resources.HemiDemiSemiQuaverR;
-		private static Bitmap DemiSemiQuaverR = Resources.DemiSemiQuaverR;
-		private static Bitmap SemiQuaverR = Resources.SemiQuaverR;
-		private static Bitmap QuaverR = Resources.QuaverR;
-		private static Bitmap CrotchetR = Resources.CrotchetR;
-		private static Bitmap MinimR = Resources.MinimR;
-		private static Bitmap SemiBreveR = Resources.SemiBreveR;
-		private static Bitmap HemiDemiSemiQuaver = Resources.HemiDemiSemiQuaver;
-		private static Bitmap HemiDemiSemiQuaverUpsideDown = Resources.HemiDemiSemiQuaverUpsideDown;
-		private static Bitmap DemiSemiQuaver = Resources.DemiSemiQuaver;
-		private static Bitmap DemiSemiQuaverUpsideDown = Resources.DemiSemiQuaverUpsideDown;
-		private static Bitmap SemiQuaver = Resources.SemiQuaver;
-		private static Bitmap SemiQuaverUpsideDown = Resources.SemiQuaverUpsideDown;
-		private static Bitmap Quaver = Resources.Quaver;
-		private static Bitmap QuaverUpsideDown = Resources.QuaverUpsideDown;
-		private static Bitmap Crotchet = Resources.Crotchet;
-		private static Bitmap CrotchetUpsideDown = TransformImage(Resources.Crotchet, RotateFlipType.Rotate180FlipNone);
-		private static Bitmap Minim = Resources.Minim;
-		private static Bitmap MinimUpsideDown = TransformImage(Resources.Minim, RotateFlipType.Rotate180FlipNone);
-		private static Bitmap SemiBreve = Resources.SemiBreve;
-		private static Bitmap SemiBreveUpsideDown = TransformImage(Resources.SemiBreve, RotateFlipType.Rotate180FlipNone);
-
-		private static Bitmap SharpHighlight = Highlight(Sharp);
-		private static Bitmap HemiDemiSemiQuaverRHighlight = Highlight(HemiDemiSemiQuaverR);
-		private static Bitmap DemiSemiQuaverRHighlight = Highlight(DemiSemiQuaverR);
-		private static Bitmap SemiQuaverRHighlight = Highlight(SemiQuaverR);
-		private static Bitmap QuaverRHighlight = Highlight(QuaverR);
-		private static Bitmap CrotchetRHighlight = Highlight(CrotchetR);
-		private static Bitmap MinimRHighlight = Highlight(MinimR);
-		private static Bitmap SemiBreveRHighlight = Highlight(SemiBreveR);
-		private static Bitmap HemiDemiSemiQuaverHighlight = Highlight(HemiDemiSemiQuaver);
-		private static Bitmap HemiDemiSemiQuaverUpsideDownHighlight = Highlight(HemiDemiSemiQuaverUpsideDown);
-		private static Bitmap DemiSemiQuaverHighlight = Highlight(DemiSemiQuaver);
-		private static Bitmap DemiSemiQuaverUpsideDownHighlight = Highlight(DemiSemiQuaverUpsideDown);
-		private static Bitmap SemiQuaverHighlight = Highlight(SemiQuaver);
-		private static Bitmap SemiQuaverUpsideDownHighlight = Highlight(SemiQuaverUpsideDown);
-		private static Bitmap QuaverHighlight = Highlight(Quaver);
-		private static Bitmap QuaverUpsideDownHighlight = Highlight(QuaverUpsideDown);
-		private static Bitmap CrotchetHighlight = Highlight(Crotchet);
-		private static Bitmap CrotchetUpsideDownHighlight = Highlight(CrotchetUpsideDown);
-		private static Bitmap MinimHighlight = Highlight(Minim);
-		private static Bitmap MinimUpsideDownHighlight = Highlight(MinimUpsideDown);
-		private static Bitmap SemiBreveHighlight = Highlight(SemiBreve);
-		private static Bitmap SemiBreveUpsideDownHighlight = Highlight(SemiBreveUpsideDown);
 		private static Pen BlackPen = Pens.Black;
-		private static Brush BlackBrush = Brushes.Black;
+		private static Brush DotBrush = Brushes.Black;
 		private static Brush HighlightedBrush = Brushes.Blue;
+		/// <summary>
+		/// The parent staff control
+		/// </summary>
 		private MusicStaff Staff;
+		/// <summary>
+		/// The associated piano keyboard control
+		/// </summary>
 		private MusicKeyboard Keyboard;
 		private int bottomBarY, oldCursorY;
-		private Stopwatch noteLengthStopwatch = new Stopwatch();
 		private NoteEnum oldPitch, pitch;
+		private float lengthInMilliseconds;
 		private NoteLength length;
-		private bool leftButtonDown, rightButtonDown, highlighted;
+		private bool leftButtonDown, highlighted;
+		/// <summary>
+		/// The music note bounds within its parent staff control
+		/// </summary>
 		public Rectangle Bounds;
 
+		/// <summary>
+		/// Gets or sets whether the note is highlighted
+		/// </summary>
 		public bool Highlighted {
 			get {
 				return highlighted;
@@ -75,12 +40,12 @@ namespace PianoNoteRecorder {
 				if (value == highlighted)
 					return;
 				highlighted = value;
-				Staff.Invalidate(Bounds, false);
+				Invalidate(new Rectangle(Point.Empty, Bounds.Size));
 			}
 		}
 
 		/// <summary>
-		/// An integer enumeration that represents note lengths with their relative value
+		/// Gets or sets the note length
 		/// </summary>
 		public NoteLength Length {
 			get {
@@ -89,38 +54,11 @@ namespace PianoNoteRecorder {
 			set {
 				if (value < NoteLength.HemiDemiSemiQuaver)
 					value = NoteLength.HemiDemiSemiQuaver;
+				if (value == length)
+					return;
 				length = value;
+				lengthInMilliseconds = (int) length * Staff.MillisPerHalfHemiDemiSemiQuaver;
 				Staff.Invalidate(false);
-			}
-		}
-
-		/// <summary>
-		/// The point of reference for the bottom F note of the current bar
-		/// </summary>
-		public int BottomBarY {
-			get {
-				return bottomBarY;
-			}
-			set {
-				bottomBarY = value;
-				Rectangle oldBounds = Bounds;
-				UpdateYLoc();
-				Staff.Invalidate(Rectangle.Union(oldBounds, Bounds), false);
-			}
-		}
-
-		/// <summary>
-		/// An integer enumeration that represents notes on a scale
-		/// </summary>
-		public NoteEnum Pitch {
-			get {
-				return pitch;
-			}
-			set {
-				pitch = value;
-				Rectangle oldBounds = Bounds;
-				UpdateYLoc();
-				Staff.Invalidate(Rectangle.Union(oldBounds, Bounds), false);
 			}
 		}
 
@@ -129,53 +67,99 @@ namespace PianoNoteRecorder {
 		/// </summary>
 		public float LengthInMilliseconds {
 			get {
-				return (int) length * Staff.millisPerHalfHemiDemiSemiQuaver;
+				return lengthInMilliseconds;
+			}
+			set {
+				Length = Staff.ToNoteLength(value);
+				lengthInMilliseconds = value;
+			}
+		}
+
+		/// <summary>
+		/// Get or sets the point of reference for the bottom F4 note of the current bar
+		/// </summary>
+		public int BottomBarY {
+			get {
+				return bottomBarY;
+			}
+			set {
+				if (value == bottomBarY)
+					return;
+				bottomBarY = value;
+				UpdateYLoc();
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the note pitch
+		/// </summary>
+		public NoteEnum Pitch {
+			get {
+				return pitch;
+			}
+			set {
+				if (value == pitch)
+					return;
+				pitch = value;
+				UpdateYLoc();
 			}
 		}
 
 		/// <summary>
 		/// Initializes a new music note control
 		/// </summary>
-		public MusicNote(MusicStaff parent, MusicKeyboard keyboard, NoteEnum pitch, NoteLength length, Point location) {
+		/// <param name="parent">The parent staff control</param>
+		/// <param name="keyboard">The associated piano keyboard control</param>
+		/// <param name="pitch">The note pitch</param>
+		/// <param name="length">The note length</param>
+		/// <param name="location">The location on the score</param>
+		public MusicNote(MusicStaff parent, MusicKeyboard keyboard, NoteEnum pitch, NoteLength length, Point location) :
+			this(parent, keyboard, pitch, (int) length * parent.MillisPerHalfHemiDemiSemiQuaver, location){
+
+		}
+
+		/// <summary>
+		/// Initializes a new music note control
+		/// </summary>
+		/// <param name="parent">The parent staff control</param>
+		/// <param name="keyboard">The associated piano keyboard control</param>
+		/// <param name="pitch">The note pitch</param>
+		/// <param name="lengthInMs">The note length in milliseconds</param>
+		/// <param name="location">The location on the score</param>
+		public MusicNote(MusicStaff parent, MusicKeyboard keyboard, NoteEnum pitch, float lengthInMs, Point location) {
 			Staff = parent;
 			Keyboard = keyboard;
 			bottomBarY = location.Y;
 			Bounds = new Rectangle(location.X, location.Y, MusicStaff.NoteWidth, MusicStaff.LineSpace * 6);
 			Pitch = pitch;
-			Length = length;
+			LengthInMilliseconds = lengthInMs;
 		}
 
-		private static Bitmap TransformImage(Bitmap image, RotateFlipType transformation) {
-			image.RotateFlip(transformation);
-			return image;
+		/// <summary>
+		/// Redraws the note on the staff
+		/// </summary>
+		public void Invalidate() {
+			Invalidate(new Rectangle(Point.Empty, Bounds.Size));
 		}
 
-		private static Bitmap Highlight(Bitmap image) {
-			Bitmap newImage = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
-			BitmapData data = image.LockBits(new Rectangle(Point.Empty, image.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-			BitmapData newData = newImage.LockBits(new Rectangle(Point.Empty, newImage.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-			unsafe
-			{
-				byte* ptr = ((byte*) data.Scan0) + 3;
-				byte* newPtr = (byte*) newData.Scan0;
-				int count = newImage.Width * newImage.Height;
-				for (int i = 0; i < count; ++i) {
-					*newPtr = 255;
-					newPtr += 3;
-					*newPtr = *ptr;
-					newPtr++;
-					ptr += 4;
-				}
-			}
-			image.UnlockBits(data);
-			newImage.UnlockBits(newData);
-			return newImage;
+		/// <summary>
+		/// Redraws the specified region of the note in client coordinates
+		/// </summary>
+		/// <param name="bounds">The are of the note to redraw</param>
+		public void Invalidate(Rectangle bounds) {
+			bounds.X += Bounds.X;
+			bounds.Y += Bounds.Y - Staff.VerticalScroll.Value;
+			Staff.Invalidate(bounds, false);
 		}
 
+		/// <summary>
+		/// Updates the Y location of the note 
+		/// </summary>
 		private void UpdateYLoc() {
-			if (pitch == NoteEnum.None)
+			Rectangle oldBounds = Bounds;
+			if (pitch == NoteEnum.None) //if is rest
 				Bounds.Y = bottomBarY - MusicStaff.LineSpace;
-			else {
+			else { //if is note
 				int noteIndex = (int) pitch - 1;
 				int note = noteIndex % 12;
 				if (note >= 5)
@@ -193,6 +177,10 @@ namespace PianoNoteRecorder {
 					newTop += MusicStaff.LineSpace * 2 + MusicStaff.BarTopDistance;
 				Bounds.Y = newTop - MusicStaff.LineSpace;
 			}
+			Rectangle toInvalidate = Rectangle.Union(oldBounds, Bounds);
+			toInvalidate.X -= Bounds.X;
+			toInvalidate.Y -= Bounds.Y;
+			Invalidate(toInvalidate);
 		}
 
 		/// <summary>
@@ -204,21 +192,19 @@ namespace PianoNoteRecorder {
 				leftButtonDown = true;
 				oldPitch = pitch;
 				Keyboard.MarkKeyPressed(pitch, false);
-			} else if (e.Button == MouseButtons.Right) {
-				noteLengthStopwatch.Start();
-				rightButtonDown = true;
-			}
+			} else if (e.Button == MouseButtons.Right)
+				Staff.StartAdjustingNote(this, Stopwatch.StartNew());
 			Highlighted = true;
 		}
 
 		/// <summary>
 		/// Called when the mouse is moved on the control
 		/// </summary>
-		public void MarkMouseMove(MouseEventArgs e) {
+		public void MarkMouseMove() {
 			if (leftButtonDown) {
 				NoteEnum newPitch = oldPitch + ((oldCursorY - Cursor.Position.Y) * 2) / MusicStaff.LineSpace;
 				if (newPitch >= NoteEnum.None && newPitch <= NoteEnum.CSharp7 && newPitch != pitch) {
-					Keyboard.MarkKeyReleased(pitch, false);
+					Keyboard.MarkKeyReleased(pitch);
 					Pitch = newPitch;
 					Keyboard.MarkKeyPressed(pitch, false);
 				}
@@ -231,14 +217,16 @@ namespace PianoNoteRecorder {
 		public void MarkMouseUp(MouseEventArgs e) {
 			if (e.Button == MouseButtons.Left) {
 				leftButtonDown = false;
-				Keyboard.MarkKeyReleased(pitch, false);
-			} else if (e.Button == MouseButtons.Right) {
-				Length = Staff.ToNoteLength(noteLengthStopwatch.ElapsedMilliseconds);
-				noteLengthStopwatch.Reset();
-			}
+				Keyboard.MarkKeyReleased(pitch);
+			} else if (e.Button == MouseButtons.Right)
+				Staff.StopAdjustingNote(this);
 			Highlighted = false;
 		}
 
+		/// <summary>
+		/// Returns whether the specified note length is dotted
+		/// </summary>
+		/// <param name="length">The length of the note</param>
 		public static bool IsDotted(NoteLength length) {
 			return (length > 0) ? ((length & (length - 1)) != 0) : true; //return false if power not of 2, else true
 		}
@@ -270,70 +258,71 @@ namespace PianoNoteRecorder {
 				switch (length) {
 					case NoteLength.HemiDemiSemiQuaver:
 					case NoteLength.DottedHemiDemiSemiQuaver:
-						DrawCenteredImage(g, highlighted ? HemiDemiSemiQuaverRHighlight : HemiDemiSemiQuaverR, location.X, location.Y);
+						DrawCenteredImage(g, highlighted ? Images.HemiDemiSemiQuaverRHighlight : Images.HemiDemiSemiQuaverR, location.X, location.Y);
 						break;
 					case NoteLength.DemiSemiQuaver:
 					case NoteLength.DottedDemiSemiQuaver:
-						DrawCenteredImage(g, highlighted ? DemiSemiQuaverRHighlight : DemiSemiQuaverR, location.X, location.Y);
+						DrawCenteredImage(g, highlighted ? Images.DemiSemiQuaverRHighlight : Images.DemiSemiQuaverR, location.X, location.Y);
 						break;
 					case NoteLength.SemiQuaver:
 					case NoteLength.DottedSemiQuaver:
-						DrawCenteredImage(g, highlighted ? SemiQuaverRHighlight : SemiQuaverR, location.X, location.Y);
+						DrawCenteredImage(g, highlighted ? Images.SemiQuaverRHighlight : Images.SemiQuaverR, location.X, location.Y);
 						break;
 					case NoteLength.Quaver:
 					case NoteLength.DottedQuaver:
-						DrawCenteredImage(g, highlighted ? QuaverRHighlight : QuaverR, location.X, location.Y);
+						DrawCenteredImage(g, highlighted ? Images.QuaverRHighlight : Images.QuaverR, location.X, location.Y);
 						break;
 					case NoteLength.Crotchet:
 					case NoteLength.DottedCrotchet:
-						DrawCenteredImage(g, highlighted ? CrotchetRHighlight : CrotchetR, location.X, location.Y);
+						DrawCenteredImage(g, highlighted ? Images.CrotchetRHighlight : Images.CrotchetR, location.X, location.Y);
 						break;
 					case NoteLength.Minim:
 					case NoteLength.DottedMinim:
-						DrawCenteredImage(g, highlighted ? MinimRHighlight : MinimR, location.X, location.Y);
+						DrawCenteredImage(g, highlighted ? Images.MinimRHighlight : Images.MinimR, location.X, location.Y);
 						break;
 					case NoteLength.SemiBreve:
-						DrawCenteredImage(g, highlighted ? SemiBreveRHighlight : SemiBreveR, location.X, location.Y);
+						DrawCenteredImage(g, highlighted ? Images.SemiBreveRHighlight : Images.SemiBreveR, location.X, location.Y);
 						break;
 				}
-			} else {
+			} else { //note
 				int centerLeft = 0;
 				switch (length) {
 					case NoteLength.HemiDemiSemiQuaver:
 					case NoteLength.DottedHemiDemiSemiQuaver:
-						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? HemiDemiSemiQuaverUpsideDownHighlight : HemiDemiSemiQuaverUpsideDown, location.X, location.Y) : DrawNoteImage(g, highlighted ? HemiDemiSemiQuaverHighlight : HemiDemiSemiQuaver, location.X + 3, location.Y);
+						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? Images.HemiDemiSemiQuaverUpsideDownHighlight : Images.HemiDemiSemiQuaverUpsideDown, location.X, location.Y) : DrawNoteImage(g, highlighted ? Images.HemiDemiSemiQuaverHighlight : Images.HemiDemiSemiQuaver, location.X + 3, location.Y);
 						break;
 					case NoteLength.DemiSemiQuaver:
 					case NoteLength.DottedDemiSemiQuaver:
-						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? DemiSemiQuaverUpsideDownHighlight : DemiSemiQuaverUpsideDown, location.X, location.Y) : DrawNoteImage(g, highlighted ? DemiSemiQuaverHighlight : DemiSemiQuaver, location.X + 3, location.Y);
+						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? Images.DemiSemiQuaverUpsideDownHighlight : Images.DemiSemiQuaverUpsideDown, location.X, location.Y) : DrawNoteImage(g, highlighted ? Images.DemiSemiQuaverHighlight : Images.DemiSemiQuaver, location.X + 3, location.Y);
 						break;
 					case NoteLength.SemiQuaver:
 					case NoteLength.DottedSemiQuaver:
-						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? SemiQuaverUpsideDownHighlight : SemiQuaverUpsideDown, location.X, location.Y) : DrawNoteImage(g, highlighted ? SemiQuaverHighlight : SemiQuaver, location.X + 3, location.Y);
+						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? Images.SemiQuaverUpsideDownHighlight : Images.SemiQuaverUpsideDown, location.X, location.Y) : DrawNoteImage(g, highlighted ? Images.SemiQuaverHighlight : Images.SemiQuaver, location.X + 3, location.Y);
 						break;
 					case NoteLength.Quaver:
 					case NoteLength.DottedQuaver:
-						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? QuaverUpsideDownHighlight : QuaverUpsideDown, location.X, location.Y) : DrawNoteImage(g, highlighted ? QuaverHighlight : Quaver, location.X + 3, location.Y);
+						centerLeft = upsideDown ? DrawNoteImage(g, highlighted ? Images.QuaverUpsideDownHighlight : Images.QuaverUpsideDown, location.X, location.Y) : DrawNoteImage(g, highlighted ? Images.QuaverHighlight : Images.Quaver, location.X + 3, location.Y);
 						break;
 					case NoteLength.Crotchet:
 					case NoteLength.DottedCrotchet:
-						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? CrotchetUpsideDownHighlight : CrotchetUpsideDown) : (highlighted ? CrotchetHighlight : Crotchet), location.X, location.Y);
+						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? Images.CrotchetUpsideDownHighlight : Images.CrotchetUpsideDown) : (highlighted ? Images.CrotchetHighlight : Images.Crotchet), location.X, location.Y);
 						break;
 					case NoteLength.Minim:
 					case NoteLength.DottedMinim:
-						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? MinimUpsideDownHighlight : MinimUpsideDown) : (highlighted ? MinimHighlight : Minim), location.X, location.Y);
+						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? Images.MinimUpsideDownHighlight : Images.MinimUpsideDown) : (highlighted ? Images.MinimHighlight : Images.Minim), location.X, location.Y);
 						break;
 					case NoteLength.SemiBreve:
-						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? SemiBreveUpsideDownHighlight : SemiBreveUpsideDown) : (highlighted ? SemiBreveHighlight : SemiBreve), location.X, location.Y);
+						centerLeft = DrawNoteImage(g, upsideDown ? (highlighted ? Images.SemiBreveUpsideDownHighlight : Images.SemiBreveUpsideDown) : (highlighted ? Images.SemiBreveHighlight : Images.SemiBreve), location.X, location.Y);
 						break;
 				}
-				if (MusicKeyboard.IsSharp(pitch))
-					g.DrawImage(highlighted ? SharpHighlight : Sharp, location.X, location.Y + (upsideDown ? MusicStaff.LineSpace / 3: (MusicStaff.LineSpace * 13) / 4), ((MusicStaff.LineSpace * 5 * Sharp.Width) / (Sharp.Height * 2)), (MusicStaff.LineSpace * 5) / 2);
+				if (MusicKeyboard.IsSharp(pitch)) //draw sharp
+					g.DrawImage(highlighted ? Images.SharpHighlight : Images.Sharp, location.X, location.Y + (upsideDown ? MusicStaff.LineSpace / 3: (MusicStaff.LineSpace * 13) / 4), ((MusicStaff.LineSpace * 5 * Images.Sharp.Width) / (Images.Sharp.Height * 2)), (MusicStaff.LineSpace * 5) / 2);
 				g.CompositingMode = CompositingMode.SourceCopy;
 				g.CompositingQuality = CompositingQuality.HighSpeed;
 				g.PixelOffsetMode = PixelOffsetMode.HighSpeed;
 				g.SmoothingMode = SmoothingMode.HighSpeed;
 				const int lineProtrusion = 2;
+				//draw auxiliary lines if note is outside of the bar
 				if (pitch <= NoteEnum.E3) {
 					int bottom = MusicStaff.LineSpace * 7 + bottomBarY + MusicStaff.BarTopDistance * 2 - Bounds.Y;
 					int y = size.Height + MusicStaff.LineSpace / 2;
@@ -353,12 +342,12 @@ namespace PianoNoteRecorder {
 						g.DrawLine(BlackPen, location.X + centerLeft - lineProtrusion, location.Y + y, location.X + size.Width + lineProtrusion - centerLeft, location.Y + y);
 				}
 			}
-			if (IsDotted(length)) {
+			if (IsDotted(length)) { //draw dot noxt to note
 				g.CompositingMode = CompositingMode.SourceOver;
 				g.CompositingQuality = CompositingQuality.HighQuality;
 				g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 				g.SmoothingMode = SmoothingMode.HighQuality;
-				g.FillEllipse(highlighted ? HighlightedBrush : BlackBrush, location.X + size.Width - 3, location.Y + (pitch == NoteEnum.None ? ((size.Height + MusicStaff.LineSpace - 3) / 2) : (upsideDown ? (MusicStaff.LineSpace * 9) / 8 : (MusicStaff.LineSpace * 33) / 8)), 3, 3);
+				g.FillEllipse(highlighted ? HighlightedBrush : DotBrush, location.X + size.Width - 3, location.Y + (pitch == NoteEnum.None ? ((size.Height + MusicStaff.LineSpace - 3) / 2) : (upsideDown ? (MusicStaff.LineSpace * 9) / 8 : (MusicStaff.LineSpace * 33) / 8)), 3, 3);
 			}
 		}
 	}

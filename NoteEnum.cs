@@ -3,7 +3,10 @@
 	/// An integer enumeration that represents notes on a scale
 	/// </summary>
 	public enum NoteEnum {
-		None = 0, //Silence (Rest)
+		/// <summary>
+		/// Silence (Rest)
+		/// </summary>
+		None = 0,
 		C3,
 		CSharp3,
 		D3,
@@ -28,7 +31,10 @@
 		A4,
 		ASharp4,
 		B4,
-		C5, //Middle C
+		/// <summary>
+		/// Middle C
+		/// </summary>
+		C5,
 		CSharp5,
 		D5,
 		DSharp5,

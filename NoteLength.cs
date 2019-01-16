@@ -1,8 +1,11 @@
 ﻿namespace PianoNoteRecorder {
 	/// <summary>
-	/// Contains all standard note lengths
+	/// Contains the standard musical note lengths
 	/// </summary>
 	public enum NoteLength : int {
+		/// <summary>
+		/// Empty note
+		/// </summary>
 		None = 0,
 		HemiDemiSemiQuaver = 2,
 		DottedHemiDemiSemiQuaver = 3,

@@ -17,8 +17,14 @@ namespace PianoNoteRecorder {
 	[Description("An interactive piano keyboard for note generation within a musical staff")]
 	[DisplayName(nameof(MusicKeyboard))]
 	public class MusicKeyboard : Panel {
+		/// <summary>
+		/// Represents whether a note has adjacent black keys
+		/// </summary>
 		[Flags]
 		private enum HasBlackKeys {
+			/// <summary>
+			/// The key has no adjacent black keys
+			/// </summary>
 			None = 0,
 			/// <summary>
 			/// Has flat
@@ -30,6 +36,9 @@ namespace PianoNoteRecorder {
 			Sharp = 2
 		}
 
+		/// <summary>
+		/// Associates the notes with keyboard keys
+		/// </summary>
 		private static Dictionary<Keys, NoteEnum> NoteKeys = new Dictionary<Keys, NoteEnum> {
 			{ Keys.D1, NoteEnum.C3 },
 			{ Keys.D2, NoteEnum.CSharp3 },
@@ -78,7 +87,6 @@ namespace PianoNoteRecorder {
 			{ Keys.OemQuestion, NoteEnum.GSharp6 },
 			{ Keys.ShiftKey, NoteEnum.A6 }
 		};
-
 		/// <summary>
 		/// The thickness of the white key outline
 		/// </summary>
@@ -99,13 +107,39 @@ namespace PianoNoteRecorder {
 			Alignment = StringAlignment.Center,
 			LineAlignment = StringAlignment.Center
 		};
-		private Dictionary<NoteEnum, Stopwatch> pressedNotes = new Dictionary<NoteEnum, Stopwatch>();
+		/// <summary>
+		/// The notes that are currently pressed on the piano keyboard
+		/// </summary>
+		private Dictionary<NoteEnum, MusicNote> pressedNotes = new Dictionary<NoteEnum, MusicNote>();
+		/// <summary>
+		/// Used for tracking rest lengths
+		/// </summary>
 		private Stopwatch SilenceStopwatch = new Stopwatch();
+		/// <summary>
+		/// The associated musical staff control
+		/// </summary>
 		internal MusicStaff Staff;
-		private SolidBrush BackgroundBrush;
+		/// <summary>
+		/// The piano background
+		/// </summary>
+		private SolidBrush backgroundBrush;
+		/// <summary>
+		/// The note that is currently being played with the mouse
+		/// </summary>
+		private MusicNote currentMouseNote;
+		/// <summary>
+		/// The width percentage of the piano
+		/// </summary>
 		private int widthScale = 100;
-		private Point LastCursorLocation;
-		private bool leftMouseDown, showHint;
+		private Point lastCursorLocation;
+		/// <summary>
+		/// Whether the left mouse button is currently pressed
+		/// </summary>
+		private bool leftMouseDown;
+		private bool showHint;
+		/// <summary>
+		/// The last note that was pressed with the mouse
+		/// </summary>
 		private NoteEnum lastMouseNote;
 
 		/// <summary>
@@ -192,11 +226,14 @@ namespace PianoNoteRecorder {
 			Text = "Top of piano can also be resized using mouse";
 		}
 
+		/// <summary>
+		/// Called when the backcolor of the keyboard has been changed
+		/// </summary>
 		protected override void OnBackColorChanged(EventArgs e) {
 			base.OnBackColorChanged(e);
-			if (BackgroundBrush != null)
-				BackgroundBrush.Dispose();
-			BackgroundBrush = new SolidBrush(BackColor);
+			if (backgroundBrush != null)
+				backgroundBrush.Dispose();
+			backgroundBrush = new SolidBrush(BackColor);
 		}
 
 		/// <summary>
@@ -205,14 +242,26 @@ namespace PianoNoteRecorder {
 		protected override void OnMouseDown(MouseEventArgs e) {
 			base.OnMouseDown(e);
 			if (e.Button == MouseButtons.Left) {
-				LastCursorLocation = e.Location;
+				Stopwatch stopwatch = Stopwatch.StartNew();
+				lastCursorLocation = e.Location;
 				leftMouseDown = true;
 				lastMouseNote = GetNoteAtPoint(e.Location);
 				if (lastMouseNote != NoteEnum.None) {
-					Staff.AddNote(NoteEnum.None, SilenceStopwatch.ElapsedMilliseconds);
-					SilenceStopwatch.Restart();
-					pressedNotes.Add(lastMouseNote, Stopwatch.StartNew());
 					MidiPlayer.PlayNote(lastMouseNote);
+					int silenceLength = (int) SilenceStopwatch.ElapsedMilliseconds;
+					NoteLength restLength = Staff.ToNoteLength(silenceLength);
+					if (restLength >= NoteLength.DemiSemiQuaver)
+						Staff.AddNote(NoteEnum.None, restLength);
+					else {
+						MusicNote lastNote = Staff.LastNote;
+						if (lastNote != null)
+							lastNote.LengthInMilliseconds += silenceLength;
+					}
+					SilenceStopwatch.Restart();
+					currentMouseNote = Staff.AddNote(lastMouseNote, NoteLength.HemiDemiSemiQuaver);
+					if (!pressedNotes.ContainsKey(lastMouseNote))
+						pressedNotes.Add(lastMouseNote, currentMouseNote);
+					Staff.StartAdjustingNote(currentMouseNote, stopwatch);
 					Invalidate(GetNoteArea(lastMouseNote), false);
 				}
 			}
@@ -224,24 +273,28 @@ namespace PianoNoteRecorder {
 		protected override void OnMouseMove(MouseEventArgs e) {
 			base.OnMouseMove(e);
 			if (leftMouseDown) {
-				LastCursorLocation = e.Location;
+				Stopwatch stopwatch = Stopwatch.StartNew();
+				lastCursorLocation = e.Location;
 				NoteEnum currentNote = GetNoteAtPoint(e.Location);
 				NoteEnum oldNote = lastMouseNote;
 				if (!pressedNotes.ContainsKey(currentNote)) {
-					if (oldNote != NoteEnum.None) {
-						Staff.AddNote(oldNote, pressedNotes[oldNote].ElapsedMilliseconds);
-						pressedNotes.Remove(oldNote);
-						MidiPlayer.StopNote(oldNote);
-					}
 					lastMouseNote = currentNote;
-					if (currentNote != NoteEnum.None) {
-						pressedNotes.Add(currentNote, Stopwatch.StartNew());
-						MidiPlayer.PlayNote(currentNote);
-					}
-					if (currentNote != NoteEnum.None)
-						Invalidate(GetNoteArea(currentNote), false);
 					if (oldNote != NoteEnum.None)
-						Invalidate(GetNoteArea(oldNote), false);
+						MidiPlayer.StopNote(oldNote);
+					if (currentNote != NoteEnum.None)
+						MidiPlayer.PlayNote(currentNote);
+					if (oldNote != NoteEnum.None) {
+						Staff.StopAdjustingNote(currentMouseNote);
+						currentMouseNote = null;
+						pressedNotes.Remove(oldNote);
+						Invalidate(GetNoteArea(oldNote));
+					}
+					if (currentNote != NoteEnum.None) {
+						currentMouseNote = Staff.AddNote(currentNote, NoteLength.HemiDemiSemiQuaver);
+						pressedNotes.Add(currentNote, currentMouseNote);
+						Staff.StartAdjustingNote(currentMouseNote, stopwatch);
+						Invalidate(GetNoteArea(currentNote));
+					}
 				}
 			}
 		}
@@ -255,8 +308,9 @@ namespace PianoNoteRecorder {
 				leftMouseDown = false;
 				if (lastMouseNote != NoteEnum.None) {
 					MidiPlayer.StopNote(lastMouseNote);
+					Staff.StopAdjustingNote(currentMouseNote);
+					currentMouseNote = null;
 					Invalidate(GetNoteArea(lastMouseNote), false);
-					Staff.AddNote(lastMouseNote, pressedNotes[lastMouseNote].ElapsedMilliseconds);
 					pressedNotes.Remove(lastMouseNote);
 					lastMouseNote = NoteEnum.None;
 				}
@@ -264,6 +318,10 @@ namespace PianoNoteRecorder {
 			SilenceStopwatch.Restart();
 		}
 
+		/// <summary>
+		/// Gets the note associated with the specified keyboard key
+		/// </summary>
+		/// <param name="key">The keyboard key that was pressed</param>
 		private static NoteEnum GetNoteFromKey(Keys key) {
 			NoteEnum note;
 			if (NoteKeys.TryGetValue(key, out note))
@@ -272,36 +330,73 @@ namespace PianoNoteRecorder {
 				return NoteEnum.None;
 		}
 
-		public void MarkKeyPressed(KeyEventArgs key) {
-			MarkKeyPressed(GetNoteFromKey(key.KeyCode), true);
+		/// <summary>
+		/// Marks the specified keyboard key as pressed
+		/// </summary>
+		/// <param name="keyCode">The key that was pressed</param>
+		public void MarkKeyPressed(Keys keyCode) {
+			MarkKeyPressed(GetNoteFromKey(keyCode), true);
 		}
 
+		/// <summary>
+		/// Marks the specified note as currently pressed
+		/// </summary>
+		/// <param name="note">The note to press on the piano keyboard</param>
+		/// <param name="addToStaff">Whether to add the specified note to the staff</param>
 		public void MarkKeyPressed(NoteEnum note, bool addToStaff) {
 			if (!(note == NoteEnum.None || pressedNotes.ContainsKey(note))) {
-				if (addToStaff)
-					Staff.AddNote(NoteEnum.None, SilenceStopwatch.ElapsedMilliseconds);
-				SilenceStopwatch.Restart();
-				pressedNotes.Add(note, Stopwatch.StartNew());
+				Stopwatch stopwatch = Stopwatch.StartNew();
 				MidiPlayer.PlayNote(note);
+				if (addToStaff) {
+					int silenceLength = (int) SilenceStopwatch.ElapsedMilliseconds;
+					NoteLength restLength = Staff.ToNoteLength(silenceLength);
+					if (restLength >= NoteLength.DemiSemiQuaver)
+						Staff.AddNote(NoteEnum.None, restLength);
+					else {
+						MusicNote lastNote = Staff.LastNote;
+						if (lastNote != null)
+							lastNote.LengthInMilliseconds += silenceLength;
+					}
+				}
+				SilenceStopwatch.Restart();
+				if (addToStaff) {
+					MusicNote noteControl = Staff.AddNote(note, NoteLength.HemiDemiSemiQuaver);
+					pressedNotes.Add(note, noteControl);
+					Staff.StartAdjustingNote(noteControl, stopwatch);
+				} else
+					pressedNotes.Add(note, null);
 				Invalidate(GetNoteArea(note), false);
 			}
 		}
 
-		public void MarkKeyReleased(KeyEventArgs key) {
-			MarkKeyReleased(GetNoteFromKey(key.KeyCode), true);
+		/// <summary>
+		/// Marks the specified keyboard key as released
+		/// </summary>
+		/// <param name="keyCode">The keyboard key that was released</param>
+		public void MarkKeyReleased(Keys keyCode) {
+			MarkKeyReleased(GetNoteFromKey(keyCode));
 		}
 
-		public void MarkKeyReleased(NoteEnum note, bool addToStaff) {
+		/// <summary>
+		/// Marks the specified note as released
+		/// </summary>
+		/// <param name="note">The note to release</param>
+		public void MarkKeyReleased(NoteEnum note) {
 			if (!(note == NoteEnum.None || note == lastMouseNote)) {
 				MidiPlayer.StopNote(note);
-				if (addToStaff && pressedNotes.ContainsKey(note))
-					Staff.AddNote(note, pressedNotes[note].ElapsedMilliseconds);
-				pressedNotes.Remove(note);
+				if (pressedNotes.ContainsKey(note)) {
+					Staff.StopAdjustingNote(pressedNotes[note]);
+					pressedNotes.Remove(note);
+				}
 				Invalidate(GetNoteArea(note), false);
 			}
 			SilenceStopwatch.Restart();
 		}
 
+		/// <summary>
+		/// Gets the spceified note area
+		/// </summary>
+		/// <param name="note">The note whose area on the keybord to return</param>
 		private Rectangle GetNoteArea(NoteEnum note) {
 			Rectangle area = new Rectangle();
 			if (note == NoteEnum.None)
@@ -352,6 +447,10 @@ namespace PianoNoteRecorder {
 			return flags;
 		}
 
+		/// <summary>
+		/// Returns whether the specified note is sharp (a black key)
+		/// </summary>
+		/// <param name="note">The note</param>
 		public static bool IsSharp(NoteEnum note) {
 			if (note == NoteEnum.None)
 				return false;
@@ -450,7 +549,7 @@ namespace PianoNoteRecorder {
 				keyStart = x + i * whiteKeyWidth;
 				currentNote = WhiteNoteIndexToNote(i);
 				currentRect = new Rectangle(keyStart, halfLineThickness, whiteKeyWidth, height);
-				if ((leftMouseDown && keyStart <= LastCursorLocation.X && keyStart + whiteKeyWidth > LastCursorLocation.X && !IsSharp(GetNoteAtPoint(LastCursorLocation))) ||
+				if ((leftMouseDown && keyStart <= lastCursorLocation.X && keyStart + whiteKeyWidth > lastCursorLocation.X && !IsSharp(GetNoteAtPoint(lastCursorLocation))) ||
 					pressedNotes.ContainsKey(currentNote)) {
 					pressedWhite.Add(currentRect);
 				}
@@ -467,13 +566,14 @@ namespace PianoNoteRecorder {
 				if (!(temp == 2 || temp == 6)) { //skip every 2nd and 6th key
 					keyStart = x + i * whiteKeyWidth + blackKeyOffset;
 					currentRect = new Rectangle(keyStart, lineThickness, blackKeyWidth, blackKeyHeight);
-					if ((leftMouseDown && LastCursorLocation.Y < blackKeyHeight && keyStart <= LastCursorLocation.X && Math.Min(keyStart + blackKeyWidth, pianoEnd) > LastCursorLocation.X) ||
+					if ((leftMouseDown && lastCursorLocation.Y < blackKeyHeight && keyStart <= lastCursorLocation.X && Math.Min(keyStart + blackKeyWidth, pianoEnd) > lastCursorLocation.X) ||
 						pressedNotes.ContainsKey(WhiteNoteIndexToNote(i) + 1))
 						pressedBlack.Add(currentRect);
 					else
 						FillRectangle(g, BlackKeyBrush, currentRect, clipRect);
 				}
 			}
+			//draw pressed white keys
 			Rectangle rect;
 			for (i = 0; i < pressedWhite.Count; i++) {
 				rect = pressedWhite[i];
@@ -485,6 +585,7 @@ namespace PianoNoteRecorder {
 				if ((hasBlackKeys & HasBlackKeys.Sharp) == HasBlackKeys.Sharp && !pressedNotes.ContainsKey((NoteEnum) ((int) note + 1)))
 					FillRectangle(g, BlackKeyBrush, new Rectangle(rect.X + blackKeyOffset, lineThickness, blackKeyWidth, blackKeyHeight), clipRect);
 			}
+			//draw pressed black keys
 			for (i = 0; i < pressedBlack.Count; i++) {
 				rect = pressedBlack[i];
 				FillRectangle(g, PressedKeyBrush, rect, clipRect);
@@ -493,11 +594,13 @@ namespace PianoNoteRecorder {
 				rect.Width -= lineThickness;
 				g.DrawRectangle(KeyOutline, rect);
 			}
-			if (BackgroundBrush == null)
-				BackgroundBrush = new SolidBrush(BackColor);
-			FillRectangle(g, BackgroundBrush, new Rectangle(0, 0, x - 1, clientSize.Height), clipRect);
-			FillRectangle(g, BackgroundBrush, new Rectangle(x + pianoWidth + halfLineThickness, 0, clientSize.Width - (x + pianoWidth + halfLineThickness), clientSize.Height), clipRect);
+			if (backgroundBrush == null)
+				backgroundBrush = new SolidBrush(BackColor);
+			//draw outside piano background
+			FillRectangle(g, backgroundBrush, new Rectangle(0, 0, x - 1, clientSize.Height), clipRect);
+			FillRectangle(g, backgroundBrush, new Rectangle(x + pianoWidth + halfLineThickness, 0, clientSize.Width - (x + pianoWidth + halfLineThickness), clientSize.Height), clipRect);
 			if (showHint) {
+				//draw render text
 				e.Graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 				e.Graphics.CompositingMode = CompositingMode.SourceOver;
 				e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
@@ -516,10 +619,14 @@ namespace PianoNoteRecorder {
 			base.OnPaint(e);
 		}
 
+		/// <summary>
+		/// Disposes of the resources used by the music keyboard control
+		/// </summary>
+		/// <param name="disposing">Whether to dispose managed resources</param>
 		protected override void Dispose(bool disposing) {
-			if (BackgroundBrush != null) {
-				BackgroundBrush.Dispose();
-				BackgroundBrush = null;
+			if (backgroundBrush != null) {
+				backgroundBrush.Dispose();
+				backgroundBrush = null;
 			}
 			base.Dispose(disposing);
 		}
