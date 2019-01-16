@@ -1,6 +1,8 @@
 # Piano Note Recorder
 
-A simple piano player and recorder written in C#.
+A simple piano player and recorder written in C#
+
+[!Piano Note Recorder](https://i.imgur.com/tiOnYyz.png)
 
 You can use the mouse or keyboard to play and manipulated notes
 
