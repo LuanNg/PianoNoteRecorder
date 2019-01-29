@@ -423,8 +423,10 @@ namespace PianoNoteRecorder {
 		/// </summary>
 		protected override void OnMouseUp(MouseEventArgs e) {
 			base.OnMouseUp(e);
-			if (inputNote != null)
+			if (inputNote != null) {
 				inputNote.MarkMouseUp(new MouseEventArgs(e.Button, e.Clicks, e.X - inputNote.Bounds.X, e.Y + VerticalScroll.Value - inputNote.Bounds.Y, e.Delta));
+				inputNote = null;
+			}
 		}
 
 		/// <summary>
